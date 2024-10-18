@@ -4,7 +4,6 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 
 A = 3
 B = (-1) * 2
@@ -30,15 +29,13 @@ class ExtendedNN(nn.Module):
             hidden_sizes = HIDDEN_SIZES
         self.fc1 = nn.Linear(input_size, hidden_sizes[0])
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
+        self.selu = nn.SELU()  # Define SELU as a layer
         self.output = nn.Linear(hidden_sizes[1], output_size)
 
     def forward(self, x):
-        x = F.selu_(self.fc1(x))
-
-        x = F.selu_(self.fc2(x))
-
+        x = self.selu(self.fc1(x))
+        x = self.selu(self.fc2(x))
         x = self.output(x)
-
         return x
 
 
@@ -136,6 +133,7 @@ def main():
     ax1.grid(True)
     plt.savefig('train_valid_polynomial_fit.png')
     plt.show()
+
 
 if __name__ == '__main__':
     main()
