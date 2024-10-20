@@ -23,7 +23,7 @@ class ExtendedNN(nn.Module):
         super(ExtendedNN, self).__init__()
         if hidden_sizes is None:
             hidden_sizes = HIDDEN_SIZES
-        self.relu = nn.ReLU()  # Instantiate the object once e use it multiple times
+        self.relu = nn.ReLU()  # Instantiate the object once e use it multiple times, do not need to instantiate multiple objects!
         self.fc1 = nn.Linear(input_size, hidden_sizes[0])
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
         self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
