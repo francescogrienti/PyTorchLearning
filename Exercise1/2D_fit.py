@@ -114,13 +114,13 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=0.01)
     train_losses, valid_losses = train_model(model, train_loader, valid_loader, criterion, optimizer, epochs=EPOCHS)
 
-    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
-    ax0.plot(train_losses, label='Train Loss')
-    ax0.plot(valid_losses, label='Validation Loss')
-    ax0.set_ylabel('Model Loss')
-    ax0.set_xlabel('Epoch')
-    ax0.legend(['Train', 'Validation'], loc='best')
-    ax0.set_title('Loss -- Model 1')
+    plt.plot(train_losses, label='Train Loss')
+    plt.plot(valid_losses, label='Validation Loss')
+    plt.ylabel('Model Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='best')
+    plt.title('Loss -- Model 1')
+    plt.savefig('2D_loss.png')
 
     x_predicted = np.random.uniform(-1.5, 1.5, size=(1000, 2))  # Same as in TensorFlow
     x_predicted_tensor = torch.tensor(x_predicted, dtype=torch.float32)
