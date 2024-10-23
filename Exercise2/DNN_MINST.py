@@ -10,12 +10,10 @@ HIDDEN_SIZES = [400, 100, 50]
 CAT = 10
 IMG_ROWS, IMG_COLS = 28, 28
 
-
 """
 DNN FOR IMAGE RECOGNITION
 """
 
-# TODO fix the normalization of the loss function and consider inserting the dropout in the NN
 
 class DNN(nn.Module):
     def __init__(self, input_size=IMG_ROWS * IMG_COLS, hidden_sizes=None, output_size=CAT):
@@ -28,22 +26,27 @@ class DNN(nn.Module):
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
         self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
         self.output = nn.Linear(hidden_sizes[2], output_size)
+        # self.dropout = nn.Dropout(p=dropout_prob)
 
     def forward(self, x):
-        x = x.view(-1, IMG_ROWS * IMG_COLS) #This flattens the array
+        x = x.view(-1, IMG_ROWS * IMG_COLS)  # This flattens the array
         x = self.relu(self.fc1(x))
+        # x = self.dropout(x)
         x = self.relu(self.fc2(x))
+        # x = self.dropout(x)
         x = self.relu(self.fc3(x))
+        # x = self.dropout(x)
         x = self.softmax(x)
 
         return x
 
 
-def train_model(model, train_loader, test_loader, criterion, optimizer, epochs):
+def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
     test_accuracies = [0 for _ in range(epochs)]
+    # predicted = []
     for epoch in range(epochs):
         model.train()  # Set the model to training mode
         running_loss = 0.0
@@ -61,7 +64,7 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, epochs):
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
 
-            running_loss += loss.item() * inputs.size(0)  # Accumulate total loss for this batch
+            running_loss += loss.item()  # Accumulate total loss for this batch
 
         epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
         train_losses[epoch] = epoch_loss
@@ -77,8 +80,9 @@ def train_model(model, train_loader, test_loader, criterion, optimizer, epochs):
         with torch.no_grad():  # No need to compute gradients for validation
             for test_inputs, test_targets in test_loader:
                 test_outputs = model(test_inputs)
-                test_loss += criterion(test_outputs, test_targets).item() * test_inputs.size(0)
+                test_loss += criterion(test_outputs, test_targets).item()
                 _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
+                print(predicted)
                 total_test += test_targets.size(0)
                 correct_test += (predicted == test_targets).sum().item()
 
@@ -100,15 +104,16 @@ def main():
     train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
     test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
 
-    train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=32, shuffle=False)
 
     model = DNN()
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    train_losses, test_losses, train_accuracies, test_accuracies = train_model(model, train_loader, test_loader,
-                                                                               criterion, optimizer, EPOCHS)
+    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
+                                                                                        test_loader,
+                                                                                        criterion, optimizer, EPOCHS)
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
@@ -128,6 +133,7 @@ def main():
 
     plt.savefig('DNN_loss_accuracy.png')
     plt.show()
+
 
 if __name__ == '__main__':
     main()
