@@ -1,7 +1,7 @@
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import torch
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 
@@ -14,6 +14,9 @@ IMG_ROWS, IMG_COLS = 28, 28
 DNN FOR IMAGE RECOGNITION
 """
 
+# TODO understand why it is not useful to define a softmax layer in the data members of the class. Apparently,
+# TODO the reason resides in the fact that the crossEntropyLoss contains itself the softmax activation. In tensorflow it does not work like this.
+# TODO Why this? Try to dive deeper into this.
 
 class DNN(nn.Module):
     def __init__(self, input_size=IMG_ROWS * IMG_COLS, hidden_sizes=None, output_size=CAT):
@@ -21,7 +24,6 @@ class DNN(nn.Module):
         if hidden_sizes is None:
             hidden_sizes = HIDDEN_SIZES
         self.relu = nn.ReLU()
-        self.softmax = nn.Softmax(dim=None)
         self.fc1 = nn.Linear(input_size, hidden_sizes[0])
         self.fc2 = nn.Linear(hidden_sizes[0], hidden_sizes[1])
         self.fc3 = nn.Linear(hidden_sizes[1], hidden_sizes[2])
@@ -31,12 +33,10 @@ class DNN(nn.Module):
     def forward(self, x):
         x = x.view(-1, IMG_ROWS * IMG_COLS)  # This flattens the array
         x = self.relu(self.fc1(x))
-        # x = self.dropout(x)
         x = self.relu(self.fc2(x))
-        # x = self.dropout(x)
         x = self.relu(self.fc3(x))
         # x = self.dropout(x)
-        x = self.softmax(x)
+        x = self.output(x)
 
         return x
 
