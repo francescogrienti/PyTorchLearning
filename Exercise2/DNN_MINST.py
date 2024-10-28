@@ -14,6 +14,7 @@ IMG_ROWS, IMG_COLS = 28, 28
 DNN FOR IMAGE RECOGNITION
 """
 
+
 # TODO understand why it is not useful to define a softmax layer in the data members of the class. Apparently,
 # TODO the reason resides in the fact that the crossEntropyLoss contains itself the softmax activation. In tensorflow it does not work like this.
 # TODO Why this? Try to dive deeper into this.
@@ -46,7 +47,7 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
     test_accuracies = [0 for _ in range(epochs)]
-    # predicted = []
+
     for epoch in range(epochs):
         model.train()  # Set the model to training mode
         running_loss = 0.0
@@ -82,7 +83,6 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
                 test_outputs = model(test_inputs)
                 test_loss += criterion(test_outputs, test_targets).item()
                 _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
-                print(predicted)
                 total_test += test_targets.size(0)
                 correct_test += (predicted == test_targets).sum().item()
 

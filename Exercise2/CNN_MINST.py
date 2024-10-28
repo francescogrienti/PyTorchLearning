@@ -1,7 +1,7 @@
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import torch
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 
@@ -9,7 +9,8 @@ import torch.optim as optim
 CNN FOR IMAGE RECOGNITION: THE USAGE OF CONVOLUTIONAL LAYERS
 """
 
-# TODO check torchmetrics and torch.utils.tensorboard
+# TorchMetrics is a collection of 100+ PyTorch metrics implementations and an easy-to-use API to create custom metrics
+# https://pytorch.org/docs/stable/tensorboard.html This may be helpful!
 
 
 EPOCHS = 20
@@ -23,7 +24,10 @@ IMG_ROWS, IMG_COLS = 28, 28
 # TODO Understand why it is not useful to define a softmax layer in the data members of the class. Apparently,
 # TODO the reason resides in the fact that the crossEntropyLoss contains itself the softmax activation. In tensorflow it does not work like this.
 # TODO Why this? Try to dive deeper into this.
-# TODO How is the kernel function initialized by default? Check out the documentation
+# TODO How is the kernel function initialized by default? Kaiming Normal Initialization for the weight, zero for the bias.
+# TODO the kernel is basically a dot product between a kernel matrix and input data plus a bias.
+# TODO Why hidden_sizes used like this?
+
 
 class CNN(nn.Module):
     def __init__(self, input_size=INPUT_CHANNELS, hidden_sizes=None, output_size=OUTPUT_SIZE, dropout_prob=0.5):
