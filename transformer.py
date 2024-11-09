@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 
 
-# TODO understand meaning of torch.einsum (tensor multiplication with Einstein notation probably?)
-# TODO dive deeper in the multi-head variant of the Attention Mechanism.
-# TODO finish implementing the entire Transformer (encoder and decoder blocks).
 # TODO what is LayerNorm?
+# TODO Multi-head attention mechanism: how does it work in the sub-space of the embedding space?
+# TODO how are the query_len, key_len and value_len determined?
+
 
 class SelfAttention(nn.Module):
     def __init__(self, embed_size, heads):

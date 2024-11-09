@@ -20,7 +20,7 @@ OUTPUT_SIZE = 10
 IMG_ROWS, IMG_COLS = 28, 28
 
 
-# TODO the image dimensions are not a parameter when defining Conv2D, the model infers them on its own. Understand the exact meaning of out_channels.
+# TODO the image dimensions are not a parameter when defining Conv2D, the model infers them on its own.
 # TODO Understand why it is not useful to define a softmax layer in the data members of the class. Apparently,
 # TODO the reason resides in the fact that the crossEntropyLoss contains itself the softmax activation. In tensorflow it does not work like this.
 # TODO Why this? Try to dive deeper into this.
