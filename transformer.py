@@ -2,9 +2,12 @@ import torch
 import torch.nn as nn
 
 
-# TODO what is LayerNorm?
 # TODO Multi-head attention mechanism: how does it work in the sub-space of the embedding space?
 # TODO how are the query_len, key_len and value_len determined?
+# TODO Is there any reason why in the feed-forward network inside the transformer block we have just TWO layers with an
+# TODO expansion in  between?
+# TODO Not clear at all the meaning of the residual connection (adding up original query and the query after the attention
+# TODO mechanism.
 
 
 class SelfAttention(nn.Module):
@@ -42,6 +45,12 @@ class SelfAttention(nn.Module):
 
         out = self.fc_out(out)
         return out
+
+
+"""
+Forward expansion: this parameter basically expands the dimensionality of the system with the aim of
+capturing more complexity and patterns in the data, and it is used in the feed-forward block of the Transformer block. 
+"""
 
 
 class TransformerBlock(nn.Module):
