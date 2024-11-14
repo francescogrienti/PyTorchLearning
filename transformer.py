@@ -9,7 +9,7 @@ import torch.nn as nn
 # TODO Not clear at all the meaning of the residual connection (adding up original query and the query after the attention
 # TODO mechanism.
 # TODO Better understand cross-attention mechanism!
-
+# TODO Fix Git!
 
 class SelfAttention(nn.Module):
     def __init__(self, embed_size, heads):
