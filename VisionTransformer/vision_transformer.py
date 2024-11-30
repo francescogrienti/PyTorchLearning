@@ -1,9 +1,96 @@
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
-
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import torch.optim as optim
 
 # TODO Check if the notation of torch.einsum is correct, there could be problems with dimension of tensors!
+# TODO Not clear the role of [CLS] token and position_embeddings, still in progress.
+
+"""
+CONSTANTS 
+"""
+EMBED_SIZE = 48
+NUM_HEADS = 4
+NUM_HIDDEN_LAYERS = 4
+FORWARD_EXPANSION = 4 * 48
+PATCH_SIZE = 4
+NUM_CLASSES = 10
+NUM_CHANNELS = 3
+QKV_BIAS = True
+DROPOUT = 0.0
+EPOCHS = 100
+
+"""
+CLASSES
+"""
+
+
+class PatchCreation(nn.Module):
+    """
+    Patches creation module.
+    """
+
+    def __init__(self, patch_size, embed_size, num_channels, image_size):
+        super().__init__()
+        self.patch_size = patch_size
+        self.embed_size = embed_size
+        self.num_channels = num_channels
+        self.image_size = image_size
+        # Calculate the number of patches from the image size and patch size
+        self.num_patches = (self.image_size // self.patch_size) ** 2
+        # Create a projection layer to convert the image into patches
+        # The layer projects each patch into a vector of size hidden_size
+        self.projection = nn.Conv2d(in_channels=self.num_channels, out_channels=self.embed_size,
+                                    kernel_size=self.patch_size,
+                                    stride=self.patch_size)
+
+    def forward(self, x):
+        x = self.projection(x)
+        # The goal of the following operation is to transform the input data into something suitable for a transformer
+        # in terms of size ----> (batch_size, num_patches, embed_size).
+        x = x.flatten(2).transpose(1, 2)
+
+
+class PatchEmbedding(nn.Module):
+    """
+    Patches embedding module, combination of patches, position and class embeddings.
+    """
+
+    def __init__(self, patch_size, embed_size, num_channels, image_size, dropout):
+        super().__init__()
+        self.patch_size = patch_size
+        self.embed_size = embed_size
+        self.num_channels = num_channels
+        self.image_size = image_size
+
+        self.embedding = PatchCreation(patch_size, embed_size, num_channels, image_size)
+        # Create a learnable [CLS] token
+        # Similar to BERT, the [CLS] token is added to the beginning of the input sequence
+        # and is used to classify the entire sequence
+        # nn.Parameter makes the tensor a learnable parameter of the model (it is updated during the training process)
+        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_size))
+        # Create position embeddings for the [CLS] token and the patch embeddings
+        # Add 1 to the sequence length for the [CLS] token
+        self.position_embeddings = \
+            nn.Parameter(torch.randn(1, self.patch_embeddings.num_patches + 1, embed_size))
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        x = self.patch_embeddings(x)
+        batch_size, _, _ = x.size()
+        # Expand the [CLS] token to the batch size
+        # (1, 1, hidden_size) -> (batch_size, 1, hidden_size)
+        cls_tokens = self.cls_token.expand(batch_size, -1, -1)
+        # Concatenate the [CLS] token to the beginning of the input sequence
+        # This results in a sequence length of (num_patches + 1)
+        x = torch.cat((cls_tokens, x), dim=1)
+        x = x + self.position_embeddings
+        x = self.dropout(x)
+        return x
+
+
 class AttentionHead(nn.Module):
     """
     A single attention head.
@@ -32,6 +119,7 @@ class AttentionHead(nn.Module):
         # softmax(Q*K.T/sqrt(head_size))*V
         energy = torch.einsum("nqhd,nkhd->nhqk", [query, key])
 
+        # To fix the dim = 3
         attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=3)
         out = torch.einsum("nhql,nlhd->nqhd", [attention, value])
         return out
@@ -63,25 +151,23 @@ class MultiHeadAttention(nn.Module):
                 self.qkv_bias
             )
             self.heads.append(head)
-        # Create a linear layer to project the attention output back to the hidden size
+        # Create a linear layer to project the attention output back to the embed size
         # In most cases, all_head_size and hidden_size are the same
-        self.output_projection = nn.Linear(self.all_head_size, self.hidden_size)
+        # Not clear this layer...all_head_size == embed_size, but in the forward method the tensors are concatenated
+        # and then projected through a layer of dim = embed_size
+        self.output_projection = nn.Linear(self.all_head_size, self.embed_size)
         self.output_dropout = nn.Dropout(dropout)
 
-    def forward(self, x, output_attentions=False):
+    def forward(self, x):
         # Calculate the attention output for each attention head
         attention_outputs = [head(x) for head in self.heads]
-        # Concatenate the attention outputs from each attention head
+        # Concatenate the attention outputs from each attention head: why dim = -1?
         attention_output = torch.cat([attention_output for attention_output, _ in attention_outputs], dim=-1)
         # Project the concatenated attention output back to the embedding size
         attention_output = self.output_projection(attention_output)
         attention_output = self.output_dropout(attention_output)
-        # Return the attention output and the attention probabilities (optional)
-        if not output_attentions:
-            return attention_output, None
-        else:
-            attention_probs = torch.stack([attention_probs for _, attention_probs in attention_outputs], dim=1)
-            return attention_output, attention_probs
+        # Return the attention output
+        return attention_output
 
 
 class MLP(nn.Module):
@@ -116,21 +202,17 @@ class TransformerBlock(nn.Module):
         self.mlp = MLP(embed_size, forward_expansion, dropout)
         self.layer_norm_2 = nn.LayerNorm(embed_size)
 
-    def forward(self, x, output_attentions=False):
+    def forward(self, x):
         # Self-attention
-        attention_output, attention_probs = \
-            self.attention(self.layer_norm_1(x), output_attentions=output_attentions)
+        attention_output = self.attention(self.layer_norm_1(x))
         # Skip connection
         x = x + attention_output
         # Feed-forward network
         mlp_output = self.mlp(self.layer_norm_2(x))
         # Skip connection
         x = x + mlp_output
-        # Return the transformer block's output and the attention probabilities (optional)
-        if not output_attentions:
-            return x, None
-        else:
-            return x, attention_probs
+        # Return the transformer block's output
+        return x
 
 
 class Encoder(nn.Module):
@@ -146,45 +228,101 @@ class Encoder(nn.Module):
             block = TransformerBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
             self.blocks.append(block)
 
-    def forward(self, x, output_attentions=False):
+    def forward(self, x, ):
         # Calculate the transformer block's output for each block
         all_attentions = []
         for block in self.blocks:
-            x, attention_probs = block(x, output_attentions=output_attentions)
-            if output_attentions:
-                all_attentions.append(attention_probs)
-        # Return the encoder's output and the attention probabilities (optional)
-        if not output_attentions:
-            return x, None
-        else:
-            return x, all_attentions
+            x = block(x)
+        return x
 
 
-# TODO Check the code more than once!
-def patch_embedding(patch_size, dataset, embed_dim):
+class ViTForClassification(nn.Module):
     """
-    :param patch_size: the size of the patch
-    :param dataset: dataset to which the patch embedding is applied
-    :param embed_dim: dimension of the linear projection of the patches
-    :return: Tensor containing embedded patches for the full dataset
+    The ViT model for classification.
     """
 
-    C, H, W = dataset[0][0].shape
-    assert H % patch_size == 0 and W % patch_size == 0, "Image dimensions must be divisible by patch size"
-    num_patches = (H // patch_size) * (W // patch_size)
-    patch_embed = nn.Linear(patch_size * patch_size * C, embed_dim)
-    position_embedding = nn.Parameter(torch.randn(1, num_patches, embed_dim))
-    all_embedded_patches = []
-    for image, _ in dataset:  # Assuming dataset returns (image, label)
-        patches = image.unfold(1, patch_size, patch_size).unfold(2, patch_size, patch_size)
-        patches = patches.permute(1, 2, 0, 3, 4).contiguous()  # (H_p, W_p, C, P, P)
-        patches = patches.view(-1, patch_size * patch_size * C)  # Flatten each patch
-        embedded_patches = patch_embed(patches)  # Shape: (num_patches, embed_dim)
-        patches_with_position = embedded_patches + position_embedding.squeeze(0)
-        all_embedded_patches.append(patches_with_position)
-    all_embedded_patches = torch.stack(all_embedded_patches)
+    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers,
+                 dataset, num_classes, patch_size, num_channels):
+        super().__init__()
+        self.image_size = dataset[0][0].shape[-1]
+        self.embed_size = embed_size
+        self.num_classes = num_classes
+        # Create the embedding layer
+        self.embedding = PatchEmbedding(patch_size, embed_size, num_channels, self.image_size, dropout)
+        # Create the transformer encoder module
+        self.encoder = Encoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
+        # Create a linear layer to project the encoder's output to the number of classes: why just one linear layer in the
+        # MLP classifier attached to the encoder?
+        self.classifier = nn.Linear(self.embed_size, self.num_classes)
+        # Initialize the weights: how are these initialized?
+        self.apply(self._init_weights)
 
-    return all_embedded_patches
+    def forward(self, x):
+        # Calculate the embedding output
+        embedding_output = self.embedding(x)
+        # Calculate the encoder's output
+        encoder_output = self.encoder(embedding_output)
+        # Calculate the logits, take the [CLS] token's output as features for classification
+        logits = self.classifier(encoder_output[:, 0])
+        # Return the logits
+        return logits
+
+
+"""
+FUNCTIONS
+"""
+
+
+def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs):
+    train_losses = [0 for _ in range(epochs)]
+    test_losses = [0 for _ in range(epochs)]
+    train_accuracies = [0 for _ in range(epochs)]
+    test_accuracies = [0 for _ in range(epochs)]
+    for epoch in range(epochs):
+        model.train()  # Set the model to training mode
+        running_loss = 0.0
+        correct_train = 0
+        total_train = 0
+
+        # Training phase
+        for inputs, targets in train_loader:
+            optimizer.zero_grad()  # Zero out gradients from the previous step
+            outputs = model(inputs)  # Forward pass
+            loss = criterion(outputs, targets)  # Compute loss
+            _, predicted = torch.max(outputs.data, 1)  # Get class with the highest probability
+            total_train += targets.size(0)
+            correct_train += (predicted == targets).sum().item()
+            loss.backward()  # Backward pass
+            optimizer.step()  # Update weights
+
+            running_loss += loss.item()  # Accumulate total loss for this batch
+
+        epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
+        train_losses[epoch] = epoch_loss
+        train_accuracies[epoch] = correct_train / total_train
+        print(
+            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {train_accuracies[epoch]:.4f}')
+
+        # Validation phase
+        model.eval()  # Set the model to evaluation mode
+        test_loss = 0.0
+        correct_test = 0
+        total_test = 0
+        with torch.no_grad():  # No need to compute gradients for validation
+            for test_inputs, test_targets in test_loader:
+                test_outputs = model(test_inputs)
+                test_loss += criterion(test_outputs, test_targets).item()
+                _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
+                total_test += test_targets.size(0)
+                correct_test += (predicted == test_targets).sum().item()
+
+        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
+        test_losses[epoch] = test_loss
+        test_accuracies[epoch] = correct_test / total_test
+        print(
+            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}')
+
+    return train_losses, test_losses, train_accuracies, test_accuracies
 
 
 def main():
@@ -195,6 +333,37 @@ def main():
 
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+    train_loader = DataLoader(dataset=train_dataset, batch_size=256, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
+
+    model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
+                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
+                                                                                        test_loader,
+                                                                                        criterion, optimizer, EPOCHS)
+    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
+    ax0.plot(train_losses, label='Train Loss')
+    ax0.plot(test_losses, label='Test Loss')
+    ax0.set_ylabel('Model Loss')
+    ax0.set_xlabel('Epoch')
+    ax0.grid(True)
+    ax0.legend(['Train', 'Test'], loc='best')
+    ax0.set_title('Loss function')
+
+    ax1.plot(train_accuracies, label='Training accuracy')
+    ax1.plot(test_accuracies, label='Test accuracy')
+    ax1.set_ylabel('Model Accuracy')
+    ax1.set_xlabel('Epoch')
+    ax1.grid(True)
+    ax1.legend(['Train', 'Test'], loc='best')
+    ax1.set_title('Accuracy function')
+
+    plt.savefig('ViT_loss_accuracy.png')
+    plt.show()
 
 
 if __name__ == '__main__':
