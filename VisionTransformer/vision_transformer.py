@@ -341,7 +341,7 @@ def main():
                                  train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
                                                                                         test_loader,
                                                                                         criterion, optimizer, EPOCHS)
