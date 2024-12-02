@@ -51,6 +51,7 @@ class PatchCreation(nn.Module):
         # The goal of the following operation is to transform the input data into something suitable for a transformer
         # in terms of size ----> (batch_size, num_patches, embed_size).
         x = x.flatten(2).transpose(1, 2)
+        return x
 
 
 class PatchEmbedding(nn.Module):
@@ -74,11 +75,11 @@ class PatchEmbedding(nn.Module):
         # Create position embeddings for the [CLS] token and the patch embeddings
         # Add 1 to the sequence length for the [CLS] token
         self.position_embeddings = \
-            nn.Parameter(torch.randn(1, self.patch_embeddings.num_patches + 1, embed_size))
+            nn.Parameter(torch.randn(1, self.embedding.num_patches + 1, embed_size))
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
-        x = self.patch_embeddings(x)
+        x = self.embedding(x)
         batch_size, _, _ = x.size()
         # Expand the [CLS] token to the batch size
         # (1, 1, hidden_size) -> (batch_size, 1, hidden_size)
@@ -99,7 +100,7 @@ class AttentionHead(nn.Module):
 
     def __init__(self, embed_size, attention_head_size, dropout, bias=True):
         super().__init__()
-        self.embed = embed_size
+        self.embed_size = embed_size
         self.attention_head_size = attention_head_size
         # Create the query, key, and value projection layers
         self.query = nn.Linear(embed_size, attention_head_size, bias=bias)
@@ -117,11 +118,11 @@ class AttentionHead(nn.Module):
         value = self.value(x)
         # Calculate the attention scores
         # softmax(Q*K.T/sqrt(head_size))*V
-        energy = torch.einsum("nqhd,nkhd->nhqk", [query, key])
+        energy = torch.einsum("nqd,nkd->nqk", [query, key])
 
         # To fix the dim = 3
-        attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=3)
-        out = torch.einsum("nhql,nlhd->nqhd", [attention, value])
+        attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=2)
+        out = torch.einsum("nql,nld->nqd", [attention, value])
         return out
 
 
@@ -142,6 +143,7 @@ class MultiHeadAttention(nn.Module):
         # Whether or not to use bias in the query, key, and value projection layers
         self.qkv_bias = qvk_bias
         # Create a list of attention heads
+        self.dropout = dropout
         self.heads = nn.ModuleList([])
         for _ in range(self.num_attention_heads):
             head = AttentionHead(
@@ -162,7 +164,7 @@ class MultiHeadAttention(nn.Module):
         # Calculate the attention output for each attention head
         attention_outputs = [head(x) for head in self.heads]
         # Concatenate the attention outputs from each attention head: why dim = -1?
-        attention_output = torch.cat([attention_output for attention_output, _ in attention_outputs], dim=-1)
+        attention_output = torch.cat([attention_output for attention_output in attention_outputs], dim=-1)
         # Project the concatenated attention output back to the embedding size
         attention_output = self.output_projection(attention_output)
         attention_output = self.output_dropout(attention_output)
@@ -254,8 +256,6 @@ class ViTForClassification(nn.Module):
         # Create a linear layer to project the encoder's output to the number of classes: why just one linear layer in the
         # MLP classifier attached to the encoder?
         self.classifier = nn.Linear(self.embed_size, self.num_classes)
-        # Initialize the weights: how are these initialized?
-        self.apply(self._init_weights)
 
     def forward(self, x):
         # Calculate the embedding output
