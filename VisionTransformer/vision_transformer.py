@@ -273,7 +273,7 @@ FUNCTIONS
 """
 
 
-def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs):
+def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs, device):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
@@ -286,6 +286,7 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
 
         # Training phase
         for inputs, targets in train_loader:
+            inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()  # Zero out gradients from the previous step
             outputs = model(inputs)  # Forward pass
             loss = criterion(outputs, targets)  # Compute loss
@@ -310,6 +311,7 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
         total_test = 0
         with torch.no_grad():  # No need to compute gradients for validation
             for test_inputs, test_targets in test_loader:
+                test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
                 test_outputs = model(test_inputs)
                 test_loss += criterion(test_outputs, test_targets).item()
                 _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
@@ -326,6 +328,8 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
 
 
 def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
@@ -338,13 +342,14 @@ def main():
     test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
 
     model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
-                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS)
+                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
                                                                                         test_loader,
-                                                                                        criterion, optimizer, EPOCHS)
+                                                                                        criterion, optimizer, EPOCHS,
+                                                                                        device)
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
