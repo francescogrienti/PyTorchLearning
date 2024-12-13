@@ -5,8 +5,12 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.optim as optim
 
-# TODO Check if the notation of torch.einsum is correct, there could be problems with dimension of tensors!
-# TODO Not clear the role of [CLS] token and position_embeddings, still in progress.
+"""
+In this .py we implement the MAE (MaskedAutoEncoder) with the aim of reconstructing masked images 
+from the CIFAR Database. The general architecture of a MAE consists of: masked input, encoder, decoder. We will 
+implement the encoder and the decoder exploiting the Attention Mechanism. This work belongs to the Supervised Learning 
+general framework. 
+"""
 
 """
 CONSTANTS 
@@ -191,7 +195,7 @@ class MLP(nn.Module):
         return x
 
 
-class TransformerBlock(nn.Module):
+class EncoderBlock(nn.Module):
     """
     A single transformer block.
     """
@@ -226,7 +230,7 @@ class Encoder(nn.Module):
         # Create a list of transformer blocks
         self.blocks = nn.ModuleList([])
         for _ in range(num_hidden_layers):
-            block = TransformerBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
+            block = EncoderBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
             self.blocks.append(block)
 
     def forward(self, x, ):
@@ -237,138 +241,17 @@ class Encoder(nn.Module):
         return x
 
 
-class ViTForClassification(nn.Module):
-    """
-    The ViT model for classification.
-    """
+class DecoderBlock(nn.Module):
+    def __init__(self, ):
+        super(DecoderBlock, self).__init__()
 
-    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers,
-                 dataset, num_classes, patch_size, num_channels):
-        super().__init__()
-        self.image_size = dataset[0][0].shape[-1]
-        self.embed_size = embed_size
-        self.num_classes = num_classes
-        # Create the embedding layer
-        self.embedding = PatchEmbedding(patch_size, embed_size, num_channels, self.image_size, dropout)
-        # Create the transformer encoder module
-        self.encoder = Encoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
-        # Create a linear layer to project the encoder's output to the number of classes: why just one linear layer in the
-        # MLP classifier attached to the encoder?
-        self.classifier = nn.Linear(self.embed_size, self.num_classes)
-
-    def forward(self, x):
-        # Calculate the embedding output
-        embedding_output = self.embedding(x)
-        # Calculate the encoder's output
-        encoder_output = self.encoder(embedding_output)
-        # Calculate the logits, take the [CLS] token's output as features for classification
-        logits = self.classifier(encoder_output[:, 0])
-        # Return the logits
-        return logits
+    def forward(self, ):
+        return
 
 
-"""
-FUNCTIONS
-"""
+class Decoder(nn.Module):
+    def __init__(self, ):
+        super(Decoder, self).__init__()
 
-
-def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs, device):
-    train_losses = [0 for _ in range(epochs)]
-    test_losses = [0 for _ in range(epochs)]
-    train_accuracies = [0 for _ in range(epochs)]
-    test_accuracies = [0 for _ in range(epochs)]
-    for epoch in range(epochs):
-        model.train()  # Set the model to training mode
-        running_loss = 0.0
-        correct_train = 0
-        total_train = 0
-
-        # Training phase
-        for inputs, targets in train_loader:
-            inputs, targets = inputs.to(device), targets.to(device)
-            optimizer.zero_grad()  # Zero out gradients from the previous step
-            outputs = model(inputs)  # Forward pass
-            loss = criterion(outputs, targets)  # Compute loss
-            _, predicted = torch.max(outputs.data, 1)  # Get class with the highest probability
-            total_train += targets.size(0)
-            correct_train += (predicted == targets).sum().item()
-            loss.backward()  # Backward pass
-            optimizer.step()  # Update weights
-
-            running_loss += loss.item()  # Accumulate total loss for this batch
-
-        epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
-        train_losses[epoch] = epoch_loss
-        train_accuracies[epoch] = correct_train / total_train
-        print(
-            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {train_accuracies[epoch]:.4f}')
-
-        # Validation phase
-        model.eval()  # Set the model to evaluation mode
-        test_loss = 0.0
-        correct_test = 0
-        total_test = 0
-        with torch.no_grad():  # No need to compute gradients for validation
-            for test_inputs, test_targets in test_loader:
-                test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
-                test_outputs = model(test_inputs)
-                test_loss += criterion(test_outputs, test_targets).item()
-                _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
-                total_test += test_targets.size(0)
-                correct_test += (predicted == test_targets).sum().item()
-
-        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
-        test_losses[epoch] = test_loss
-        test_accuracies[epoch] = correct_test / total_test
-        print(
-            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}')
-
-    return train_losses, test_losses, train_accuracies, test_accuracies
-
-
-def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
-    ])
-
-    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-
-    train_loader = DataLoader(dataset=train_dataset, batch_size=256, shuffle=True)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
-
-    model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
-                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
-
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
-    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
-                                                                                        test_loader,
-                                                                                        criterion, optimizer, EPOCHS,
-                                                                                        device)
-    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
-    ax0.plot(train_losses, label='Train Loss')
-    ax0.plot(test_losses, label='Test Loss')
-    ax0.set_ylabel('Model Loss')
-    ax0.set_xlabel('Epoch')
-    ax0.grid(True)
-    ax0.legend(['Train', 'Test'], loc='best')
-    ax0.set_title('Loss function')
-
-    ax1.plot(train_accuracies, label='Training accuracy')
-    ax1.plot(test_accuracies, label='Test accuracy')
-    ax1.set_ylabel('Model Accuracy')
-    ax1.set_xlabel('Epoch')
-    ax1.grid(True)
-    ax1.legend(['Train', 'Test'], loc='best')
-    ax1.set_title('Accuracy function')
-
-    plt.savefig('ViT_loss_accuracy.png')
-    plt.show()
-
-
-if __name__ == '__main__':
-    main()
+    def forward(self, ):
+        return
