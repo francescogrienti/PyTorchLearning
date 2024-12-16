@@ -129,10 +129,40 @@ class AttentionHead(nn.Module):
         return out
 
 
+# TODO Fix the input x, enc_output
+class CrossAttentionHead(nn.Module):
+    """
+    Single-head attention module for cross-attention layer.
+
+    """
+
+    def __init__(self, embed_size, attention_head_size, dropout, bias=True):
+        super().__init__()
+        self.embed_size = embed_size
+        self.attention_head_size = attention_head_size
+        # Create the query, key, and value projection layers
+        self.query = nn.Linear(embed_size, attention_head_size, bias=bias)
+        self.key = nn.Linear(embed_size, attention_head_size, bias=bias)
+        self.value = nn.Linear(embed_size, attention_head_size, bias=bias)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, enc_output):
+        query = self.query(x)
+        key = self.key(x)
+        value = self.value(x)
+        # Calculate the attention scores
+        # softmax(Q*K.T/sqrt(head_size))*V
+        energy = torch.einsum("nqd,nkd->nqk", [query, key])
+
+        attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=2)
+        out = torch.einsum("nql,nld->nqd", [attention, value])
+        return out
+
+
 class MultiHeadAttention(nn.Module):
     """
     Multi-head attention module.
-    This module is used in the TransformerEncoder module.
+    This module is used in the Encoder module.
     """
 
     def __init__(self, embed_size, num_attention_heads, dropout, qvk_bias):
@@ -175,6 +205,51 @@ class MultiHeadAttention(nn.Module):
         return attention_output
 
 
+class CrossMultiHeadAttention(nn.Module):
+    """
+      Multi-head attention module for cross-attention layer.
+    """
+
+    def __init__(self, embed_size, num_attention_heads, dropout, qvk_bias):
+        super().__init__()
+        self.embed_size = embed_size
+        self.num_attention_heads = num_attention_heads
+        # The attention head size is the hidden size divided by the number of attention heads
+        self.attention_head_size = self.embed_size // self.num_attention_heads
+        self.all_head_size = self.num_attention_heads * self.attention_head_size
+        assert (self.all_head_size == self.embed_size)
+        # Whether or not to use bias in the query, key, and value projection layers
+        self.qkv_bias = qvk_bias
+        # Create a list of attention heads
+        self.dropout = dropout
+        self.heads = nn.ModuleList([])
+        for _ in range(self.num_attention_heads):
+            head = CrossAttentionHead(
+                self.embed_size,
+                self.attention_head_size,
+                self.dropout,
+                self.qkv_bias
+            )
+            self.heads.append(head)
+        # Create a linear layer to project the attention output back to the embed size
+        # In most cases, all_head_size and hidden_size are the same
+        # Not clear this layer...all_head_size == embed_size, but in the forward method the tensors are concatenated
+        # and then projected through a layer of dim = embed_size
+        self.output_projection = nn.Linear(self.all_head_size, self.embed_size)
+        self.output_dropout = nn.Dropout(dropout)
+
+    def forward(self, x, enc_output):
+        # Calculate the attention output for each attention head
+        attention_outputs = [head(x, enc_output) for head in self.heads]
+        # Concatenate the attention outputs from each attention head: why dim = -1?
+        attention_output = torch.cat([attention_output for attention_output in attention_outputs], dim=-1)
+        # Project the concatenated attention output back to the embedding size
+        attention_output = self.output_projection(attention_output)
+        attention_output = self.output_dropout(attention_output)
+        # Return the attention output
+        return attention_output
+
+
 class MLP(nn.Module):
     """
     A multi-layer perceptron module.
@@ -202,10 +277,10 @@ class EncoderBlock(nn.Module):
 
     def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias):
         super().__init__()
-        self.attention = MultiHeadAttention(embed_size, num_attention_heads, dropout, qvk_bias)
         self.layer_norm_1 = nn.LayerNorm(embed_size)
-        self.mlp = MLP(embed_size, forward_expansion, dropout)
+        self.attention = MultiHeadAttention(embed_size, num_attention_heads, dropout, qvk_bias)
         self.layer_norm_2 = nn.LayerNorm(embed_size)
+        self.mlp = MLP(embed_size, forward_expansion, dropout)
 
     def forward(self, x):
         # Self-attention
@@ -235,23 +310,64 @@ class Encoder(nn.Module):
 
     def forward(self, x, ):
         # Calculate the transformer block's output for each block
-        all_attentions = []
         for block in self.blocks:
             x = block(x)
         return x
 
 
 class DecoderBlock(nn.Module):
-    def __init__(self, ):
-        super(DecoderBlock, self).__init__()
+    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias):
+        super().__init__()
+        self.layer_norm_1 = nn.LayerNorm(embed_size)
+        self.attention = MultiHeadAttention(embed_size, num_attention_heads, dropout, qvk_bias)
+        self.cross_attention = CrossMultiHeadAttention(embed_size, num_attention_heads, dropout, qvk_bias)
+        self.layer_norm_2 = nn.LayerNorm(embed_size)
+        self.mlp = MLP(embed_size, forward_expansion, dropout)
 
-    def forward(self, ):
-        return
+    def forward(self, x, enc_output):
+        attention_output = self.attention(self.layer_norm_1(x))
+        x = x + attention_output
+        cross_attention_output = self.cross_attention(x, enc_output)
+        x = x + cross_attention_output
+        mlp_output = self.mlp(self.layer_norm_2(x))
+        x = x + mlp_output
+        return x
 
 
 class Decoder(nn.Module):
-    def __init__(self, ):
-        super(Decoder, self).__init__()
+    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers):
+        super().__init__()
+        # Create a list of transformer blocks
+        self.blocks = nn.ModuleList([])
+        for _ in range(num_hidden_layers):
+            block = DecoderBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
+            self.blocks.append(block)
 
-    def forward(self, ):
-        return
+    def forward(self, x, enc_output):
+        # Calculate the transformer block's output for each block
+        for block in self.blocks:
+            x = block(x, enc_output)
+        return x
+
+
+# TODO Fix this class
+class MaskedAutoEncoder(nn.Module):
+    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, dataset, patch_size,
+                 num_hidden_layers, num_channels):
+        super().__init__()
+        self.image_size = dataset[0][0].shape[-1]
+        self.embed_size = embed_size
+        # Create the embedding layer
+        self.embedding = PatchEmbedding(patch_size, embed_size, num_channels, self.image_size, dropout)
+        # Create the encoder module
+        self.encoder = Encoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
+        # Create the decoder module
+        self.decoder = Decoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
+
+    def forward(self, x, enc_output):
+        # Calculate the embedding output
+        embedding_output = self.embedding(x)
+        # Calculate the encoder's output
+        encoder_output = self.encoder(embedding_output)
+        decoder_output = self.decoder(x, encoder_output, enc_output)
+        return decoder_output
