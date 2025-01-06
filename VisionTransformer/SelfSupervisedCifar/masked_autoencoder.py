@@ -82,18 +82,47 @@ class PatchEmbedding(nn.Module):
             nn.Parameter(torch.randn(1, self.embedding.num_patches + 1, embed_size))
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x):
+    def forward(self, x, mask_ratio):
         x = self.embedding(x)
         batch_size, _, _ = x.size()
         # Expand the [CLS] token to the batch size
         # (1, 1, hidden_size) -> (batch_size, 1, hidden_size)
+        # masking: length -> length * mask_ratio
+        x, mask, ids_restore = self.random_masking(x, mask_ratio)
         cls_tokens = self.cls_token.expand(batch_size, -1, -1)
         # Concatenate the [CLS] token to the beginning of the input sequence
         # This results in a sequence length of (num_patches + 1)
         x = torch.cat((cls_tokens, x), dim=1)
         x = x + self.position_embeddings
         x = self.dropout(x)
-        return x
+        return x, mask, ids_restore
+
+    def random_masking(self, x, mask_ratio):
+        """
+        Perform per-sample random masking by per-sample shuffling.
+        Per-sample shuffling is done by argsort random noise.
+        x: [N, L, D], sequence
+        """
+        N, L, D = x.shape  # batch, length, dim
+        len_keep = int(L * (1 - mask_ratio))
+
+        noise = torch.rand(N, L, device=x.device)  # noise in [0, 1]
+
+        # sort noise for each sample
+        ids_shuffle = torch.argsort(noise, dim=1)  # ascend: small is keep, large is remove
+        ids_restore = torch.argsort(ids_shuffle, dim=1)
+
+        # keep the first subset
+        ids_keep = ids_shuffle[:, :len_keep]
+        x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+
+        # generate the binary mask: 0 is keep, 1 is remove
+        mask = torch.ones([N, L], device=x.device)
+        mask[:, :len_keep] = 0
+        # unshuffle to get the binary mask
+        mask = torch.gather(mask, dim=1, index=ids_restore)
+
+        return x_masked, mask, ids_restore
 
 
 class AttentionHead(nn.Module):
@@ -117,36 +146,6 @@ class AttentionHead(nn.Module):
         # The same input is used to generate the query, key, and value,
         # so it's usually called self-attention.
         # (batch_size, sequence_length, embed_size) -> (batch_size, sequence_length, attention_head_size)
-        query = self.query(x)
-        key = self.key(x)
-        value = self.value(x)
-        # Calculate the attention scores
-        # softmax(Q*K.T/sqrt(head_size))*V
-        energy = torch.einsum("nqd,nkd->nqk", [query, key])
-
-        attention = torch.softmax(energy / (self.embed_size ** (1 / 2)), dim=2)
-        out = torch.einsum("nql,nld->nqd", [attention, value])
-        return out
-
-
-# TODO Fix the input x, enc_output
-class CrossAttentionHead(nn.Module):
-    """
-    Single-head attention module for cross-attention layer.
-
-    """
-
-    def __init__(self, embed_size, attention_head_size, dropout, bias=True):
-        super().__init__()
-        self.embed_size = embed_size
-        self.attention_head_size = attention_head_size
-        # Create the query, key, and value projection layers
-        self.query = nn.Linear(embed_size, attention_head_size, bias=bias)
-        self.key = nn.Linear(embed_size, attention_head_size, bias=bias)
-        self.value = nn.Linear(embed_size, attention_head_size, bias=bias)
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, x, enc_output):
         query = self.query(x)
         key = self.key(x)
         value = self.value(x)
@@ -205,51 +204,6 @@ class MultiHeadAttention(nn.Module):
         return attention_output
 
 
-class CrossMultiHeadAttention(nn.Module):
-    """
-      Multi-head attention module for cross-attention layer.
-    """
-
-    def __init__(self, embed_size, num_attention_heads, dropout, qvk_bias):
-        super().__init__()
-        self.embed_size = embed_size
-        self.num_attention_heads = num_attention_heads
-        # The attention head size is the hidden size divided by the number of attention heads
-        self.attention_head_size = self.embed_size // self.num_attention_heads
-        self.all_head_size = self.num_attention_heads * self.attention_head_size
-        assert (self.all_head_size == self.embed_size)
-        # Whether or not to use bias in the query, key, and value projection layers
-        self.qkv_bias = qvk_bias
-        # Create a list of attention heads
-        self.dropout = dropout
-        self.heads = nn.ModuleList([])
-        for _ in range(self.num_attention_heads):
-            head = CrossAttentionHead(
-                self.embed_size,
-                self.attention_head_size,
-                self.dropout,
-                self.qkv_bias
-            )
-            self.heads.append(head)
-        # Create a linear layer to project the attention output back to the embed size
-        # In most cases, all_head_size and hidden_size are the same
-        # Not clear this layer...all_head_size == embed_size, but in the forward method the tensors are concatenated
-        # and then projected through a layer of dim = embed_size
-        self.output_projection = nn.Linear(self.all_head_size, self.embed_size)
-        self.output_dropout = nn.Dropout(dropout)
-
-    def forward(self, x, enc_output):
-        # Calculate the attention output for each attention head
-        attention_outputs = [head(x, enc_output) for head in self.heads]
-        # Concatenate the attention outputs from each attention head: why dim = -1?
-        attention_output = torch.cat([attention_output for attention_output in attention_outputs], dim=-1)
-        # Project the concatenated attention output back to the embedding size
-        attention_output = self.output_projection(attention_output)
-        attention_output = self.output_dropout(attention_output)
-        # Return the attention output
-        return attention_output
-
-
 class MLP(nn.Module):
     """
     A multi-layer perceptron module.
@@ -270,7 +224,7 @@ class MLP(nn.Module):
         return x
 
 
-class EncoderBlock(nn.Module):
+class TransformerBlock(nn.Module):
     """
     A single transformer block.
     """
@@ -303,71 +257,82 @@ class Encoder(nn.Module):
     def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers):
         super().__init__()
         # Create a list of transformer blocks
+        self.layer_norm = nn.LayerNorm(embed_size)
         self.blocks = nn.ModuleList([])
         for _ in range(num_hidden_layers):
-            block = EncoderBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
+            block = TransformerBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
             self.blocks.append(block)
 
-    def forward(self, x, ):
+    def forward(self, x):
         # Calculate the transformer block's output for each block
         for block in self.blocks:
             x = block(x)
-        return x
-
-
-class DecoderBlock(nn.Module):
-    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias):
-        super().__init__()
-        self.layer_norm_1 = nn.LayerNorm(embed_size)
-        self.attention = MultiHeadAttention(embed_size, num_attention_heads, dropout, qvk_bias)
-        self.cross_attention = CrossMultiHeadAttention(embed_size, num_attention_heads, dropout, qvk_bias)
-        self.layer_norm_2 = nn.LayerNorm(embed_size)
-        self.mlp = MLP(embed_size, forward_expansion, dropout)
-
-    def forward(self, x, enc_output):
-        attention_output = self.attention(self.layer_norm_1(x))
-        x = x + attention_output
-        cross_attention_output = self.cross_attention(x, enc_output)
-        x = x + cross_attention_output
-        mlp_output = self.mlp(self.layer_norm_2(x))
-        x = x + mlp_output
+        x = self.layer_norm(x)
         return x
 
 
 class Decoder(nn.Module):
-    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers):
+    def __init__(self, embed_size, decoder_embed_size, num_patches, patch_size, num_channels, forward_expansion,
+                 dropout, num_attention_heads,
+                 qvk_bias, num_hidden_layers):
         super().__init__()
+        self.decoder_embed = nn.Linear(embed_size, decoder_embed_size, bias=True)
+        self.mask_token = nn.Parameter(torch.zeros(1, 1, decoder_embed_size))
+        self.decoder_pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, decoder_embed_size),
+                                              requires_grad=False)  # fixed sin-cos emb
+        self.decoder_pred = nn.Linear(decoder_embed_size, patch_size ** 2 * num_channels, bias=True)  # decoder to patch
+        self.layer_norm = nn.LayerNorm(decoder_embed_size)
         # Create a list of transformer blocks
         self.blocks = nn.ModuleList([])
         for _ in range(num_hidden_layers):
-            block = DecoderBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
+            block = TransformerBlock(decoder_embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
             self.blocks.append(block)
 
-    def forward(self, x, enc_output):
+    def forward(self, x, ids_restore):
+        x = self.decoder_embed(x)
+
+        # append mask tokens to sequence
+        mask_tokens = self.mask_token.repeat(x.shape[0], ids_restore.shape[1] + 1 - x.shape[1], 1)
+        x_ = torch.cat([x[:, 1:, :], mask_tokens], dim=1)  # no cls token
+        x_ = torch.gather(x_, dim=1, index=ids_restore.unsqueeze(-1).repeat(1, 1, x.shape[2]))  # unshuffle
+        x = torch.cat([x[:, :1, :], x_], dim=1)  # append cls token
+
+        # add pos embed
+        x = x + self.decoder_pos_embed
+
         # Calculate the transformer block's output for each block
         for block in self.blocks:
-            x = block(x, enc_output)
+            x = block(x)
+        x = self.layer_norm(x)
+        # predictor projection
+        x = self.decoder_pred(x)
+
+        # remove cls token
+        x = x[:, 1:, :]
         return x
 
 
-# TODO Fix this class
+# TODO Fix this class : add forward loss to compare prediction and target
 class MaskedAutoEncoder(nn.Module):
-    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, dataset, patch_size,
+    def __init__(self, embed_size, decoder_embed_size, num_patches, forward_expansion, dropout, num_attention_heads,
+                 qvk_bias, dataset, patch_size,
                  num_hidden_layers, num_channels):
         super().__init__()
         self.image_size = dataset[0][0].shape[-1]
         self.embed_size = embed_size
+        self.decoder_embed_size = decoder_embed_size
         # Create the embedding layer
         self.embedding = PatchEmbedding(patch_size, embed_size, num_channels, self.image_size, dropout)
         # Create the encoder module
         self.encoder = Encoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
         # Create the decoder module
-        self.decoder = Decoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
+        self.decoder = Decoder(embed_size, decoder_embed_size, num_patches, patch_size, num_channels, forward_expansion,
+                               dropout, num_attention_heads, qvk_bias, num_hidden_layers)
 
-    def forward(self, x, enc_output):
+    def forward(self, x, mask_ratio=0.75):
         # Calculate the embedding output
-        embedding_output = self.embedding(x)
+        embedding_output, mask, ids_restore = self.embedding(x, mask_ratio)
         # Calculate the encoder's output
         encoder_output = self.encoder(embedding_output)
-        decoder_output = self.decoder(x, encoder_output, enc_output)
+        decoder_output = self.decoder(encoder_output, ids_restore)
         return decoder_output
