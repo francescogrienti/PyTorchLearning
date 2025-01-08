@@ -312,15 +312,16 @@ class Decoder(nn.Module):
         return x
 
 
-# TODO Fix this class : add forward loss to compare prediction and target
 class MaskedAutoEncoder(nn.Module):
     def __init__(self, embed_size, decoder_embed_size, num_patches, forward_expansion, dropout, num_attention_heads,
                  qvk_bias, dataset, patch_size,
-                 num_hidden_layers, num_channels):
+                 num_hidden_layers, num_channels, norm_pix_loss=False):
         super().__init__()
         self.image_size = dataset[0][0].shape[-1]
         self.embed_size = embed_size
         self.decoder_embed_size = decoder_embed_size
+        self.patch_size = patch_size
+        self.norm_pix_loss = norm_pix_loss
         # Create the embedding layer
         self.embedding = PatchEmbedding(patch_size, embed_size, num_channels, self.image_size, dropout)
         # Create the encoder module
@@ -329,10 +330,94 @@ class MaskedAutoEncoder(nn.Module):
         self.decoder = Decoder(embed_size, decoder_embed_size, num_patches, patch_size, num_channels, forward_expansion,
                                dropout, num_attention_heads, qvk_bias, num_hidden_layers)
 
+    # Function for the patches
+    def patchify(self, imgs):
+        """
+        imgs: (N, 3, H, W)
+        x: (N, L, patch_size**2 *3)
+        """
+        assert imgs.shape[2] == imgs.shape[3] and imgs.shape[2] % self.patch_size == 0
+
+        h = w = imgs.shape[2] // self.patch_size
+        x = imgs.reshape(shape=(imgs.shape[0], 3, h, self.patch_size, w, self.patch_size))
+        x = torch.einsum('nchpwq->nhwpqc', x)
+        x = x.reshape(shape=(imgs.shape[0], h * w, self.patch_size ** 2 * 3))
+        return x
+
+    # Function for evaluating the loss between original images and the prediction from the MAE
+    def forward_loss(self, imgs, pred, mask):
+        """
+        imgs: [N, 3, H, W]
+        pred: [N, L, p*p*3]
+        mask: [N, L], 0 is keep, 1 is remove,
+        """
+        target = self.patchify(imgs)
+        if self.norm_pix_loss:
+            mean = target.mean(dim=-1, keepdim=True)
+            var = target.var(dim=-1, keepdim=True)
+            target = (target - mean) / (var + 1.e-6) ** .5
+
+        loss = (pred - target) ** 2
+        loss = loss.mean(dim=-1)  # [N, L], mean loss per patch
+
+        loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
+        return loss
+
     def forward(self, x, mask_ratio=0.75):
         # Calculate the embedding output
         embedding_output, mask, ids_restore = self.embedding(x, mask_ratio)
         # Calculate the encoder's output
         encoder_output = self.encoder(embedding_output)
         decoder_output = self.decoder(encoder_output, ids_restore)
-        return decoder_output
+        loss = self.forward_loss(x, decoder_output, mask)
+        return loss, decoder_output, mask
+
+
+#TODO Fix the main for training the model.
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
+    ])
+
+    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+    train_loader = DataLoader(dataset=train_dataset, batch_size=256, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
+
+    model = MaskedAutoEncoder(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
+
+                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
+    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
+                                                                                        test_loader,
+                                                                                        criterion, optimizer, EPOCHS,
+                                                                                        device)
+    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
+    ax0.plot(train_losses, label='Train Loss')
+    ax0.plot(test_losses, label='Test Loss')
+    ax0.set_ylabel('Model Loss')
+    ax0.set_xlabel('Epoch')
+    ax0.grid(True)
+    ax0.legend(['Train', 'Test'], loc='best')
+    ax0.set_title('Loss function')
+
+    ax1.plot(train_accuracies, label='Training accuracy')
+    ax1.plot(test_accuracies, label='Test accuracy')
+    ax1.set_ylabel('Model Accuracy')
+    ax1.set_xlabel('Epoch')
+    ax1.grid(True)
+    ax1.legend(['Train', 'Test'], loc='best')
+    ax1.set_title('Accuracy function')
+
+    plt.savefig('ViT_loss_accuracy.png')
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()

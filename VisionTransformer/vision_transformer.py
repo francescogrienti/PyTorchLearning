@@ -8,6 +8,8 @@ import torch.optim as optim
 # TODO Check if the notation of torch.einsum is correct, there could be problems with dimension of tensors!
 # TODO Not clear the role of [CLS] token and position_embeddings, still in progress.
 
+# Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
+
 """
 CONSTANTS 
 """
