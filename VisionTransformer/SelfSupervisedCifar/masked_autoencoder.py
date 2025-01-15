@@ -16,6 +16,8 @@ general framework.
 CONSTANTS 
 """
 EMBED_SIZE = 48
+DECODER_EMBED_SIZE = 24
+NUM_PATCHES = 196
 NUM_HEADS = 4
 NUM_HIDDEN_LAYERS = 4
 FORWARD_EXPANSION = 4 * 48
@@ -373,7 +375,61 @@ class MaskedAutoEncoder(nn.Module):
         return loss, decoder_output, mask
 
 
-#TODO Fix the main for training the model.
+def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs, device):
+    train_losses = [0 for _ in range(epochs)]
+    test_losses = [0 for _ in range(epochs)]
+    train_accuracies = [0 for _ in range(epochs)]
+    test_accuracies = [0 for _ in range(epochs)]
+    for epoch in range(epochs):
+        model.train()  # Set the model to training mode
+        running_loss = 0.0
+        correct_train = 0
+        total_train = 0
+
+        # Training phase
+        for inputs, targets in train_loader:
+            inputs, targets = inputs.to(device), targets.to(device)
+            optimizer.zero_grad()  # Zero out gradients from the previous step
+            outputs = model(inputs)  # Forward pass
+            loss = criterion(outputs, targets)  # Compute loss
+            _, predicted = torch.max(outputs.data, 1)  # Get class with the highest probability
+            total_train += targets.size(0)
+            correct_train += (predicted == targets).sum().item()
+            loss.backward()  # Backward pass
+            optimizer.step()  # Update weights
+
+            running_loss += loss.item()  # Accumulate total loss for this batch
+
+        epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
+        train_losses[epoch] = epoch_loss
+        train_accuracies[epoch] = correct_train / total_train
+        print(
+            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {train_accuracies[epoch]:.4f}')
+
+        # Validation phase
+        model.eval()  # Set the model to evaluation mode
+        test_loss = 0.0
+        correct_test = 0
+        total_test = 0
+        with torch.no_grad():  # No need to compute gradients for validation
+            for test_inputs, test_targets in test_loader:
+                test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
+                test_outputs = model(test_inputs)
+                test_loss += criterion(test_outputs, test_targets).item()
+                _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
+                total_test += test_targets.size(0)
+                correct_test += (predicted == test_targets).sum().item()
+
+        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
+        test_losses[epoch] = test_loss
+        test_accuracies[epoch] = correct_test / total_test
+        print(
+            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}')
+
+    return train_losses, test_losses, train_accuracies, test_accuracies
+
+
+# TODO Fix the main for training the model.
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -388,9 +444,8 @@ def main():
     train_loader = DataLoader(dataset=train_dataset, batch_size=256, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
 
-    model = MaskedAutoEncoder(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
-
-                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
+    model = MaskedAutoEncoder(EMBED_SIZE, DECODER_EMBED_SIZE, NUM_PATCHES, FORWARD_EXPANSION, DROPOUT, NUM_HEADS,
+                              QKV_BIAS, train_dataset, PATCH_SIZE, NUM_HIDDEN_LAYERS, NUM_CHANNELS).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
