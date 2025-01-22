@@ -6,9 +6,6 @@ import matplotlib.pyplot as plt
 import torch.optim as optim
 import numpy as np
 
-# TODO Check if the notation of torch.einsum is correct, there could be problems with dimension of tensors!
-# TODO Not clear the role of [CLS] token and position_embeddings, still in progress.
-
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
 
 """
@@ -340,8 +337,8 @@ def main():
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     # Define the percentage of the dataset you want to use
-    train_subset_fraction = 0.05  # Use 5% of the training dataset
-    test_subset_fraction = 0.02  # Use 2% of the testing dataset
+    train_subset_fraction = 0.01  # Use 1% of the training dataset
+    test_subset_fraction = 0.005  # Use 0.5% of the testing dataset
 
     # Generate indices for the training subset
     train_subset_size = int(train_subset_fraction * len(train_dataset))
