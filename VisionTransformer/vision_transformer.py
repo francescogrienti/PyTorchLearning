@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 import matplotlib.pyplot as plt
 import torch.optim as optim
+import numpy as np
 
 # TODO Check if the notation of torch.einsum is correct, there could be problems with dimension of tensors!
 # TODO Not clear the role of [CLS] token and position_embeddings, still in progress.
@@ -338,10 +339,23 @@ def main():
 
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    # Define the percentage of the dataset you want to use
+    train_subset_fraction = 0.05  # Use 5% of the training dataset
+    test_subset_fraction = 0.02  # Use 2% of the testing dataset
 
-    train_loader = DataLoader(dataset=train_dataset, batch_size=256, shuffle=True)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
+    # Generate indices for the training subset
+    train_subset_size = int(train_subset_fraction * len(train_dataset))
+    train_indices = np.random.choice(len(train_dataset), train_subset_size, replace=False)
+    train_subset = Subset(train_dataset, train_indices)
 
+    # Generate indices for the testing subset
+    test_subset_size = int(test_subset_fraction * len(test_dataset))
+    test_indices = np.random.choice(len(test_dataset), test_subset_size, replace=False)
+    test_subset = Subset(test_dataset, test_indices)
+
+    # Create DataLoaders for the subsets
+    train_loader = DataLoader(train_subset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_subset, batch_size=32, shuffle=False)
     model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
                                  train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
 
@@ -373,4 +387,5 @@ def main():
 
 
 if __name__ == '__main__':
+    print("Running ViT for classification on CIFAR-10 dataset...")
     main()
