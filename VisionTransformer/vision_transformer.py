@@ -336,6 +336,8 @@ def main():
 
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+    """
     # Define the percentage of the dataset you want to use
     train_subset_fraction = 0.01  # Use 1% of the training dataset
     test_subset_fraction = 0.005  # Use 0.5% of the testing dataset
@@ -350,9 +352,10 @@ def main():
     test_indices = np.random.choice(len(test_dataset), test_subset_size, replace=False)
     test_subset = Subset(test_dataset, test_indices)
 
-    # Create DataLoaders for the subsets
-    train_loader = DataLoader(train_subset, batch_size=32, shuffle=True)
-    test_loader = DataLoader(test_subset, batch_size=32, shuffle=False)
+    """
+
+    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
     model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
                                  train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
 
