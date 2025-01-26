@@ -15,6 +15,7 @@ general framework.
 """
 CONSTANTS 
 """
+
 EMBED_SIZE = 48
 DECODER_EMBED_SIZE = 24
 NUM_PATCHES = 196

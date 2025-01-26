@@ -1,30 +1,27 @@
 import torch
 import torch.nn as nn
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.optim as optim
-import numpy as np
+from hyperopt import hp, STATUS_OK, fmin, tpe, Trials
 
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
+# Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
 
-"""
-CONSTANTS 
-"""
-EMBED_SIZE = 48
-NUM_HEADS = 4
-NUM_HIDDEN_LAYERS = 4
-FORWARD_EXPANSION = 4 * 48
-PATCH_SIZE = 4
-NUM_CLASSES = 10
-NUM_CHANNELS = 3
-QKV_BIAS = True
-DROPOUT = 0.0
-EPOCHS = 100
-
-"""
-CLASSES
-"""
+hyper_space = {
+    "learning_rate": 0.01,
+    "embed_size": 48,
+    "num_heads": 4,
+    "num_hidden_layers": 4,
+    "forward_expansion": 2,
+    "patch_size": 4,
+    "num_classes": 10,
+    "num_channels": 3,
+    "qkv_bias": True,
+    "dropout_rate": 0.1,
+    "epochs": 100
+}
 
 
 class PatchCreation(nn.Module):
@@ -267,11 +264,6 @@ class ViTForClassification(nn.Module):
         return logits
 
 
-"""
-FUNCTIONS
-"""
-
-
 def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs, device):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
@@ -301,7 +293,8 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
         train_losses[epoch] = epoch_loss
         train_accuracies[epoch] = correct_train / total_train
         print(
-            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {train_accuracies[epoch]:.4f}')
+            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {train_accuracies[epoch]:.4f}',
+            flush=True)
 
         # Validation phase
         model.eval()  # Set the model to evaluation mode
@@ -321,14 +314,46 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
         test_losses[epoch] = test_loss
         test_accuracies[epoch] = correct_test / total_test
         print(
-            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}')
+            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}',
+            flush=True)
 
     return train_losses, test_losses, train_accuracies, test_accuracies
 
 
+def objective(params):
+    learning_rate = params["learning_rate"]
+    dropout_rate = params["dropout_rate"]
+    patch_size = params["patch_size"]
+    hidden_size = int(params["hidden_size"])
+
+    model = ViTForClassification(
+        image_size=224,
+        patch_size=patch_size,
+        num_classes=10,
+        hidden_size=hidden_size,
+        dropout=dropout_rate,
+    )
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    accuracy = train_and_evaluate(model, optimizer, scheduler)
+
+    return {
+        "loss": -accuracy,  # HyperOpt minimizza, quindi usiamo segno negativo
+        "status": STATUS_OK
+    }
+
+
+def HyperParametersOptim(objective, params, max_evals):
+    trials = Trials()
+    best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+
+    return best
+
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    print(f"Using device: {device}", flush=True)
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
@@ -337,25 +362,12 @@ def main():
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-    """
-    # Define the percentage of the dataset you want to use
-    train_subset_fraction = 0.01  # Use 1% of the training dataset
-    test_subset_fraction = 0.005  # Use 0.5% of the testing dataset
-
-    # Generate indices for the training subset
-    train_subset_size = int(train_subset_fraction * len(train_dataset))
-    train_indices = np.random.choice(len(train_dataset), train_subset_size, replace=False)
-    train_subset = Subset(train_dataset, train_indices)
-
-    # Generate indices for the testing subset
-    test_subset_size = int(test_subset_fraction * len(test_dataset))
-    test_indices = np.random.choice(len(test_dataset), test_subset_size, replace=False)
-    test_subset = Subset(test_dataset, test_indices)
-
-    """
-
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
+
+    objective(hyper_space)
+    best = HyperParametersOptim(objective, hyper_space, max_evals=100)
+
     model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
                                  train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
 
@@ -387,5 +399,5 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Running ViT for classification on CIFAR-10 dataset...")
+    print('Running ViT for classification on CIFAR-10 dataset...', flush=True)
     main()
