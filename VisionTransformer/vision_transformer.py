@@ -9,17 +9,19 @@ from hyperopt import hp, STATUS_OK, fmin, tpe, Trials
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
 # Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
 
+# TODO Capire come implementare il training loop per l'ottimizzazione
+
 hyper_space = {
-    "learning_rate": 0.01,
-    "embed_size": 48,
-    "num_heads": 4,
-    "num_hidden_layers": 4,
-    "forward_expansion": 2,
-    "patch_size": 4,
+    "learning_rate": hp.loguniform("learning_rate", -5, -1),
+    "embed_size": hp.quniform("embed_size", 16, 1024, 16),
+    "num_heads": hp.choice("num_heads", [2, 4, 8, 16]),
+    "num_hidden_layers": hp.quniform("num_hidden_layers", 1, 12, 1),
+    "forward_expansion": hp.quniform("forward_expansion", 1024, 32768, 1024),
+    "patch_size": hp.choice("patch_size", [4, 8, 16]),
+    "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.5),
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "dropout_rate": 0.1,
     "epochs": 100
 }
 
@@ -320,31 +322,34 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
     return train_losses, test_losses, train_accuracies, test_accuracies
 
 
-def objective(params):
+def objective(params, train_dataset):
     learning_rate = params["learning_rate"]
-    dropout_rate = params["dropout_rate"]
+    embed_size = int(params["embed_size"])
+    num_heads = params["num_heads"]
+    num_hidden_layers = params["num_hidden_layers"]
+    forward_expansion = params["forward_expansion"]
     patch_size = params["patch_size"]
-    hidden_size = int(params["hidden_size"])
+    dropout_rate = params["dropout_rate"]
+    qvk_bias = params["qvk_bias"]
+    num_classes = params["num_classes"]
+    num_channels = params["num_channels"]
 
     model = ViTForClassification(
-        image_size=224,
-        patch_size=patch_size,
-        num_classes=10,
-        hidden_size=hidden_size,
-        dropout=dropout_rate,
+        embed_size, forward_expansion, dropout_rate, num_heads, qvk_bias, num_hidden_layers,
+        train_dataset, num_classes, patch_size, num_channels
     )
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-    accuracy = train_and_evaluate(model, optimizer, scheduler)
+    accuracy = train_and_test_model(model, optimizer, scheduler)
 
     return {
-        "loss": -accuracy,  # HyperOpt minimizza, quindi usiamo segno negativo
+        "loss": (-1) * accuracy,  # HyperOpt minimizza, quindi usiamo segno negativo
         "status": STATUS_OK
     }
 
 
-def HyperParametersOptim(objective, params, max_evals):
+def hyperparam_opt(params, max_evals):
     trials = Trials()
     best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials)
 
@@ -365,17 +370,19 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
-    objective(hyper_space)
-    best = HyperParametersOptim(objective, hyper_space, max_evals=100)
+    best = hyperparam_opt(hyper_space, max_evals=100)
 
-    model = ViTForClassification(EMBED_SIZE, FORWARD_EXPANSION, DROPOUT, NUM_HEADS, QKV_BIAS, NUM_HIDDEN_LAYERS,
-                                 train_dataset, NUM_CLASSES, PATCH_SIZE, NUM_CHANNELS).to(device)
+    model = ViTForClassification(best["embed_size"], best["forward_expansion"], best["dropout_rate"], best["num_heads"],
+                                 hyper_space["qkv_bias"], best["num_hidden_layers"],
+                                 train_dataset, hyper_space["num_classes"], best["patch_size"],
+                                 hyper_space["num_channels"]).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
                                                                                         test_loader,
-                                                                                        criterion, optimizer, EPOCHS,
+                                                                                        criterion, optimizer,
+                                                                                        hyper_space["epochs"],
                                                                                         device)
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
