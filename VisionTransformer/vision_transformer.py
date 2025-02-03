@@ -25,6 +25,19 @@ hyper_space = {
     "epochs": 100
 }
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}", flush=True)
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
+])
+
+train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
+
 
 class PatchCreation(nn.Module):
     """
@@ -266,7 +279,7 @@ class ViTForClassification(nn.Module):
         return logits
 
 
-def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs, device):
+def train_and_test_model(model, criterion, optimizer, epochs):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
@@ -291,7 +304,7 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
 
             running_loss += loss.item()  # Accumulate total loss for this batch
 
-        epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
+        epoch_loss = running_loss / len(train_loader)  # Average loss for the epoch
         train_losses[epoch] = epoch_loss
         train_accuracies[epoch] = correct_train / total_train
         print(
@@ -312,7 +325,7 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
                 total_test += test_targets.size(0)
                 correct_test += (predicted == test_targets).sum().item()
 
-        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
+        test_loss = test_loss / len(test_loader)  # Average validation loss
         test_losses[epoch] = test_loss
         test_accuracies[epoch] = correct_test / total_test
         print(
@@ -322,7 +335,7 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
     return train_losses, test_losses, train_accuracies, test_accuracies
 
 
-def objective(params, train_dataset):
+def train_and_evaluate_model(params, epochs):
     learning_rate = params["learning_rate"]
     embed_size = int(params["embed_size"])
     num_heads = params["num_heads"]
@@ -338,15 +351,44 @@ def objective(params, train_dataset):
         embed_size, forward_expansion, dropout_rate, num_heads, qvk_bias, num_hidden_layers,
         train_dataset, num_classes, patch_size, num_channels
     )
-
+    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-    accuracy = train_and_test_model(model, optimizer, scheduler)
 
-    return {
-        "loss": (-1) * accuracy,  # HyperOpt minimizza, quindi usiamo segno negativo
-        "status": STATUS_OK
-    }
+    for epoch in range(epochs):
+        model.train()  # Set the model to training mode
+
+        # Training phase
+        for inputs, targets in train_dataset:
+            inputs, targets = inputs.to(device), targets.to(device)
+            optimizer.zero_grad()  # Zero out gradients from the previous step
+            outputs = model(inputs)  # Forward pass
+            loss = criterion(outputs, targets)  # Compute loss
+            loss.backward()  # Backward pass
+            optimizer.step()  # Update weights
+        scheduler.step()
+
+    # Validation phase
+    model.eval()  # Set the model to evaluation mode
+    total_loss = 0.0
+    correct_test = 0
+    total_test = 0
+    with torch.no_grad():  # No need to compute gradients for validation
+        for test_inputs, test_targets in test_dataset:
+            test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
+            test_outputs = model(test_inputs)
+            total_loss += criterion(test_outputs, test_targets).item()
+            _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
+            total_test += test_targets.size(0)
+            correct_test += (predicted == test_targets).sum().item()
+
+    val_loss = total_loss / len(test_loader)  # Average validation loss
+
+    return val_loss
+
+
+def objective(params):
+    return train_and_evaluate_model(params, epochs=hyper_space["epochs"])
 
 
 def hyperparam_opt(params, max_evals):
@@ -357,33 +399,16 @@ def hyperparam_opt(params, max_evals):
 
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}", flush=True)
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
-    ])
-
-    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-
-    train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
-
-    best = hyperparam_opt(hyper_space, max_evals=100)
-
+    best = hyperparam_opt(hyper_space, max_evals=10)
     model = ViTForClassification(best["embed_size"], best["forward_expansion"], best["dropout_rate"], best["num_heads"],
                                  hyper_space["qkv_bias"], best["num_hidden_layers"],
                                  train_dataset, hyper_space["num_classes"], best["patch_size"],
                                  hyper_space["num_channels"]).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
-    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
-                                                                                        test_loader,
-                                                                                        criterion, optimizer,
-                                                                                        hyper_space["epochs"],
-                                                                                        device)
+    optimizer = optim.AdamW(model.parameters(), lr=best["learning_rate"], weight_decay=1e-2)
+    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
+                                                                                        hyper_space["epochs"])
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
