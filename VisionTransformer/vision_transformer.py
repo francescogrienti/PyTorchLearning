@@ -9,7 +9,6 @@ from hyperopt import hp, STATUS_OK, fmin, tpe, Trials
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
 # Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
 
-# TODO Capire come implementare il training loop per l'ottimizzazione
 
 hyper_space = {
     "learning_rate": hp.loguniform("learning_rate", -5, -1),
