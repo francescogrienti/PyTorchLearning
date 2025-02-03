@@ -15,10 +15,13 @@ hyper_space = {
     "learning_rate": hp.loguniform("learning_rate", -5, -1),
     "embed_size": hp.quniform("embed_size", 16, 1024, 16),
     "num_heads": hp.choice("num_heads", [2, 4, 8, 16]),
-    "num_hidden_layers": hp.quniform("num_hidden_layers", 1, 12, 1),
+    "num_hidden_layers": hp.uniformint("num_hidden_layers", 1, 12),
     "forward_expansion": hp.quniform("forward_expansion", 1024, 32768, 1024),
     "patch_size": hp.choice("patch_size", [4, 8, 16]),
     "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.5),
+}
+
+fixed_param = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
@@ -343,12 +346,12 @@ def train_and_evaluate_model(params, epochs):
     forward_expansion = params["forward_expansion"]
     patch_size = params["patch_size"]
     dropout_rate = params["dropout_rate"]
-    qvk_bias = params["qvk_bias"]
-    num_classes = params["num_classes"]
-    num_channels = params["num_channels"]
+    qkv_bias = fixed_param["qkv_bias"]
+    num_classes = fixed_param["num_classes"]
+    num_channels = fixed_param["num_channels"]
 
     model = ViTForClassification(
-        embed_size, forward_expansion, dropout_rate, num_heads, qvk_bias, num_hidden_layers,
+        embed_size, forward_expansion, dropout_rate, num_heads, qkv_bias, num_hidden_layers,
         train_dataset, num_classes, patch_size, num_channels
     )
     criterion = nn.CrossEntropyLoss()
@@ -388,7 +391,12 @@ def train_and_evaluate_model(params, epochs):
 
 
 def objective(params):
-    return train_and_evaluate_model(params, epochs=hyper_space["epochs"])
+    params["embed_size"] = int(params["embed_size"])
+    params["num_heads"] = int(params["num_heads"])
+    params["num_hidden_layers"] = int(params["num_hidden_layers"])
+    params["forward_expansion"] = int(params["forward_expansion"])
+    params["patch_size"] = int(params["patch_size"])
+    return train_and_evaluate_model(params, epochs=fixed_param["epochs"])
 
 
 def hyperparam_opt(params, max_evals):
