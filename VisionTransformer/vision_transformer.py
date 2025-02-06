@@ -4,7 +4,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.optim as optim
-from hyperopt import hp, STATUS_OK, fmin, tpe, Trials
+from hyperopt import hp, fmin, tpe, Trials
 
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
 # Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
@@ -361,7 +361,7 @@ def train_and_evaluate_model(params, epochs):
         model.train()  # Set the model to training mode
 
         # Training phase
-        for inputs, targets in train_dataset:
+        for inputs, targets in train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()  # Zero out gradients from the previous step
             outputs = model(inputs)  # Forward pass
@@ -376,7 +376,7 @@ def train_and_evaluate_model(params, epochs):
     correct_test = 0
     total_test = 0
     with torch.no_grad():  # No need to compute gradients for validation
-        for test_inputs, test_targets in test_dataset:
+        for test_inputs, test_targets in test_loader:
             test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
             test_outputs = model(test_inputs)
             total_loss += criterion(test_outputs, test_targets).item()
@@ -401,6 +401,7 @@ def objective(params):
 def hyperparam_opt(params, max_evals):
     trials = Trials()
     best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+    print (best)
 
     return best
 
