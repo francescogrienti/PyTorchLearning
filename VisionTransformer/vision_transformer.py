@@ -352,7 +352,7 @@ def train_and_evaluate_model(params, epochs):
     model = ViTForClassification(
         embed_size, forward_expansion, dropout_rate, num_heads, qkv_bias, num_hidden_layers,
         train_dataset, num_classes, patch_size, num_channels
-    )
+    ).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
@@ -401,7 +401,7 @@ def objective(params):
 def hyperparam_opt(params, max_evals):
     trials = Trials()
     best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials)
-    print (best)
+    print(best)
 
     return best
 
