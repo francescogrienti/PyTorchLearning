@@ -407,7 +407,7 @@ def hyperparam_opt(params, max_evals):
 
 
 def main():
-    best = hyperparam_opt(hyper_space, max_evals=10)
+    best = hyperparam_opt(hyper_space, max_evals=1)
     model = ViTForClassification(best["embed_size"], best["forward_expansion"], best["dropout_rate"], best["num_heads"],
                                  hyper_space["qkv_bias"], best["num_hidden_layers"],
                                  train_dataset, hyper_space["num_classes"], best["patch_size"],
