@@ -12,10 +12,10 @@ from hyperopt import hp, fmin, tpe, Trials
 
 hyper_space = {
     "learning_rate": hp.loguniform("learning_rate", -5, -1),
-    "embed_size": hp.quniform("embed_size", 16, 1024, 16),
+    "embed_size": hp.quniform("embed_size", 16, 256, 16),
     "num_heads": hp.choice("num_heads", [2, 4, 8, 16]),
-    "num_hidden_layers": hp.uniformint("num_hidden_layers", 1, 12),
-    "forward_expansion": hp.quniform("forward_expansion", 1024, 32768, 1024),
+    "num_hidden_layers": hp.uniformint("num_hidden_layers", 1, 6),
+    "forward_expansion": hp.quniform("forward_expansion", 256, 1024, 256),
     "patch_size": hp.choice("patch_size", [4, 8, 16]),
     "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.5),
 }
@@ -24,7 +24,7 @@ fixed_param = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 100
+    "epochs": 50
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,8 +37,8 @@ transform = transforms.Compose([
 train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
 
 class PatchCreation(nn.Module):
@@ -401,7 +401,6 @@ def objective(params):
 def hyperparam_opt(params, max_evals):
     trials = Trials()
     best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials)
-    print(best)
 
     return best
 
