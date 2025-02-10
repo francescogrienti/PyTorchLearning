@@ -407,10 +407,11 @@ def hyperparam_opt(params, max_evals):
 
 def main():
     best = hyperparam_opt(hyper_space, max_evals=1)
+    print(best)
     model = ViTForClassification(best["embed_size"], best["forward_expansion"], best["dropout_rate"], best["num_heads"],
-                                 hyper_space["qkv_bias"], best["num_hidden_layers"],
-                                 train_dataset, hyper_space["num_classes"], best["patch_size"],
-                                 hyper_space["num_channels"]).to(device)
+                                 fixed_param["qkv_bias"], best["num_hidden_layers"],
+                                 train_dataset, fixed_param["num_classes"], best["patch_size"],
+                                 fixed_param["num_channels"]).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=best["learning_rate"], weight_decay=1e-2)
