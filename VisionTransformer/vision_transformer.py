@@ -12,10 +12,10 @@ from hyperopt import hp, fmin, tpe, Trials
 
 hyper_space = {
     "learning_rate": hp.loguniform("learning_rate", -5, -1),
-    "embed_size": hp.quniform("embed_size", 16, 256, 16),
+    "embed_size": hp.choice("embed_size", [64, 128, 256, 512]),
     "num_heads": hp.choice("num_heads", [2, 4, 8, 16]),
-    "num_hidden_layers": hp.uniformint("num_hidden_layers", 1, 6),
-    "forward_expansion": hp.quniform("forward_expansion", 256, 1024, 256),
+    "num_hidden_layers": hp.uniformint("num_hidden_layers", 1, 8),
+    "forward_expansion": hp.choice("forward_expansion", [128, 256, 512]),
     "patch_size": hp.choice("patch_size", [4, 8, 16]),
     "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.5),
 }
@@ -406,7 +406,12 @@ def hyperparam_opt(params, max_evals):
 
 
 def main():
-    best = hyperparam_opt(hyper_space, max_evals=1)
+    best = hyperparam_opt(hyper_space, max_evals=20)
+    best["embed_size"] = int(best["embed_size"])
+    best["num_heads"] = int(best["num_heads"])
+    best["num_hidden_layers"] = int(best["num_hidden_layers"])
+    best["forward_expansion"] = int(best["forward_expansion"])
+    best["patch_size"] = int(best["patch_size"])
     print(best)
     model = ViTForClassification(best["embed_size"], best["forward_expansion"], best["dropout_rate"], best["num_heads"],
                                  fixed_param["qkv_bias"], best["num_hidden_layers"],
