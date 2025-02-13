@@ -24,7 +24,7 @@ fixed_param = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 1
+    "epochs": 30
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,8 +37,8 @@ transform = transforms.Compose([
 train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
 
 class PatchCreation(nn.Module):
@@ -339,7 +339,7 @@ def train_and_test_model(model, criterion, optimizer, epochs):
 
 def train_and_evaluate_model(params, epochs):
     learning_rate = params["learning_rate"]
-    embed_size = int(params["embed_size"])
+    embed_size = params["embed_size"]
     num_heads = params["num_heads"]
     num_hidden_layers = params["num_hidden_layers"]
     forward_expansion = params["forward_expansion"]
@@ -370,6 +370,7 @@ def train_and_evaluate_model(params, epochs):
             optimizer.step()  # Update weights
         scheduler.step()
 
+        print('Epoch...', flush=True)
     # Validation phase
     model.eval()  # Set the model to evaluation mode
     total_loss = 0.0
@@ -390,29 +391,24 @@ def train_and_evaluate_model(params, epochs):
 
 
 def objective(params):
-    params["embed_size"] = int(params["embed_size"])
-    params["num_heads"] = int(params["num_heads"])
-    params["num_hidden_layers"] = int(params["num_hidden_layers"])
-    params["forward_expansion"] = int(params["forward_expansion"])
-    params["patch_size"] = int(params["patch_size"])
     return train_and_evaluate_model(params, epochs=fixed_param["epochs"])
 
 
 def hyperparam_opt(params, max_evals):
     trials = Trials()
-    best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+    best = fmin(objective, params, algo=tpe.suggest, max_evals=max_evals, trials=trials, return_argmin=False)
 
     return best
 
 
 def main():
-    best = hyperparam_opt(hyper_space, max_evals=1)
+    best = hyperparam_opt(hyper_space, max_evals=20)
     best["embed_size"] = int(best["embed_size"])
     best["num_heads"] = int(best["num_heads"])
     best["num_hidden_layers"] = int(best["num_hidden_layers"])
     best["forward_expansion"] = int(best["forward_expansion"])
     best["patch_size"] = int(best["patch_size"])
-    print(best)
+    print(best, flush=True)
     model = ViTForClassification(best["embed_size"], best["forward_expansion"], best["dropout_rate"], best["num_heads"],
                                  fixed_param["qkv_bias"], best["num_hidden_layers"],
                                  train_dataset, fixed_param["num_classes"], best["patch_size"],
@@ -421,7 +417,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=best["learning_rate"], weight_decay=1e-2)
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
-                                                                                        hyper_space["epochs"])
+                                                                                        fixed_param["epochs"])
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
