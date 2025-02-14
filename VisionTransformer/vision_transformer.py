@@ -12,19 +12,20 @@ from hyperopt import hp, fmin, tpe, Trials
 
 hyper_space = {
     "learning_rate": hp.loguniform("learning_rate", -5, -1),
-    "embed_size": hp.choice("embed_size", [64, 128, 256, 512]),
-    "num_heads": hp.choice("num_heads", [2, 4, 8, 16]),
-    "num_hidden_layers": hp.uniformint("num_hidden_layers", 1, 8),
-    "forward_expansion": hp.choice("forward_expansion", [128, 256, 512]),
-    "patch_size": hp.choice("patch_size", [4, 8, 16]),
-    "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.5),
+    "embed_size": hp.choice("embed_size", [128]),
+    "num_heads": hp.choice("num_heads", [4]),
+    "num_hidden_layers": hp.uniformint("num_hidden_layers", 5, 7),
+    "forward_expansion": hp.choice("forward_expansion", [256]),
+    "patch_size": hp.choice("patch_size", [4]),
+    "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.2),
 }
 
 fixed_param = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 30
+    "epochs_opt": 50,
+    "epochs": 100
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -37,8 +38,8 @@ transform = transforms.Compose([
 train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
 
 class PatchCreation(nn.Module):
@@ -391,7 +392,7 @@ def train_and_evaluate_model(params, epochs):
 
 
 def objective(params):
-    return train_and_evaluate_model(params, epochs=fixed_param["epochs"])
+    return train_and_evaluate_model(params, epochs=fixed_param["epochs_opt"])
 
 
 def hyperparam_opt(params, max_evals):
@@ -402,7 +403,7 @@ def hyperparam_opt(params, max_evals):
 
 
 def main():
-    best = hyperparam_opt(hyper_space, max_evals=20)
+    best = hyperparam_opt(hyper_space, max_evals=30)
     best["embed_size"] = int(best["embed_size"])
     best["num_heads"] = int(best["num_heads"])
     best["num_hidden_layers"] = int(best["num_hidden_layers"])
