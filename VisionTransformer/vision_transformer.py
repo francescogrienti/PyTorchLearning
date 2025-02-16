@@ -283,7 +283,7 @@ class ViTForClassification(nn.Module):
         return logits
 
 
-def train_and_test_model(model, criterion, optimizer, epochs, scheduler):
+def train_and_test_model(model, criterion, optimizer, epochs):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
@@ -332,7 +332,6 @@ def train_and_test_model(model, criterion, optimizer, epochs, scheduler):
         test_loss = test_loss / len(test_loader)  # Average validation loss
         test_losses[epoch] = test_loss
         test_accuracies[epoch] = correct_test / total_test
-        scheduler.step()
         print(
             f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}',
             flush=True)
@@ -356,8 +355,7 @@ def train_and_evaluate_model(params, epochs):
         train_dataset, num_classes, patch_size, num_channels
     ).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=fixed_param["learning_rate"])
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=fixed_param["learning_rate"], weight_decay=1e-2)
 
     for epoch in range(epochs):
         model.train()  # Set the model to training mode
@@ -370,7 +368,6 @@ def train_and_evaluate_model(params, epochs):
             loss = criterion(outputs, targets)  # Compute loss
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
-        scheduler.step()
 
         print('Epoch...', flush=True)
     # Validation phase
@@ -418,10 +415,9 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=fixed_param["learning_rate"], weight_decay=1e-2)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
-                                                                                        fixed_param["epochs"],
-                                                                                        scheduler)
+                                                                                        fixed_param["epochs"]
+                                                                                        )
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
