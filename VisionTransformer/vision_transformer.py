@@ -24,8 +24,8 @@ fixed_param = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs_opt": 1,
-    "epochs": 1,
+    "epochs_opt": 10,
+    "epochs": 150,
 
 }
 
@@ -404,7 +404,7 @@ def hyperparam_opt(params, max_evals):
 
 
 def main():
-    best = hyperparam_opt(hyper_space, max_evals=1)
+    best = hyperparam_opt(hyper_space, max_evals=10)
     best["embed_size"] = int(best["embed_size"])
     best["num_heads"] = int(best["num_heads"])
     best["num_hidden_layers"] = int(best["num_hidden_layers"])
