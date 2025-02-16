@@ -11,21 +11,22 @@ from hyperopt import hp, fmin, tpe, Trials
 
 
 hyper_space = {
-    "learning_rate": hp.loguniform("learning_rate", -5, -1),
     "embed_size": hp.choice("embed_size", [128]),
     "num_heads": hp.choice("num_heads", [4]),
-    "num_hidden_layers": hp.uniformint("num_hidden_layers", 5, 7),
+    "num_hidden_layers": hp.uniformint("num_hidden_layers", 5, 6),
     "forward_expansion": hp.choice("forward_expansion", [256]),
     "patch_size": hp.choice("patch_size", [4]),
     "dropout_rate": hp.uniform("dropout_rate", 0.1, 0.2),
 }
 
 fixed_param = {
+    "learning_rate": 0.01,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs_opt": 50,
-    "epochs": 100
+    "epochs_opt": 1,
+    "epochs": 1,
+
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -282,7 +283,7 @@ class ViTForClassification(nn.Module):
         return logits
 
 
-def train_and_test_model(model, criterion, optimizer, epochs):
+def train_and_test_model(model, criterion, optimizer, epochs, scheduler):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
@@ -331,6 +332,7 @@ def train_and_test_model(model, criterion, optimizer, epochs):
         test_loss = test_loss / len(test_loader)  # Average validation loss
         test_losses[epoch] = test_loss
         test_accuracies[epoch] = correct_test / total_test
+        scheduler.step()
         print(
             f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}',
             flush=True)
@@ -339,7 +341,6 @@ def train_and_test_model(model, criterion, optimizer, epochs):
 
 
 def train_and_evaluate_model(params, epochs):
-    learning_rate = params["learning_rate"]
     embed_size = params["embed_size"]
     num_heads = params["num_heads"]
     num_hidden_layers = params["num_hidden_layers"]
@@ -355,7 +356,7 @@ def train_and_evaluate_model(params, epochs):
         train_dataset, num_classes, patch_size, num_channels
     ).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=fixed_param["learning_rate"])
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
 
     for epoch in range(epochs):
@@ -403,7 +404,7 @@ def hyperparam_opt(params, max_evals):
 
 
 def main():
-    best = hyperparam_opt(hyper_space, max_evals=30)
+    best = hyperparam_opt(hyper_space, max_evals=1)
     best["embed_size"] = int(best["embed_size"])
     best["num_heads"] = int(best["num_heads"])
     best["num_hidden_layers"] = int(best["num_hidden_layers"])
@@ -416,9 +417,11 @@ def main():
                                  fixed_param["num_channels"]).to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=best["learning_rate"], weight_decay=1e-2)
+    optimizer = optim.AdamW(model.parameters(), lr=fixed_param["learning_rate"], weight_decay=1e-2)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
-                                                                                        fixed_param["epochs"])
+                                                                                        fixed_param["epochs"],
+                                                                                        scheduler)
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
