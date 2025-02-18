@@ -11,17 +11,17 @@ from hyperopt import hp, fmin, tpe, Trials
 
 
 hyper_space = {
-    "embed_size": 128,
+    "embed_size": 48,
     "num_heads": 4,
-    "num_hidden_layers": 6,
-    "forward_expansion": 256,
+    "num_hidden_layers": 4,
+    "forward_expansion": 192,
     "patch_size": 4,
     "dropout_rate": 0.1,
-    "learning_rate": 0.01,
+    "learning_rate": 0.001,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 150,
+    "epochs": 100,
 }
 
 
@@ -35,8 +35,8 @@ transform = transforms.Compose([
 train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 
 class PatchCreation(nn.Module):
