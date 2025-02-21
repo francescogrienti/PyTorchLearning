@@ -16,7 +16,7 @@ hyper_space = {
     "forward_expansion": 256,
     "patch_size": 4,
     "dropout_rate": 0.1,
-    "learning_rate": 0.01,
+    "learning_rate": 0.001,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
