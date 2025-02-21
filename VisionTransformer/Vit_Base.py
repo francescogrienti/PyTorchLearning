@@ -4,20 +4,19 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.optim as optim
-from hyperopt import hp, fmin, tpe, Trials
 
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
 # Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
 
 
 hyper_space = {
-    "embed_size": 48,
+    "embed_size": 128,
     "num_heads": 4,
-    "num_hidden_layers": 4,
-    "forward_expansion": 192,
+    "num_hidden_layers": 6,
+    "forward_expansion": 256,
     "patch_size": 4,
     "dropout_rate": 0.1,
-    "learning_rate": 0.001,
+    "learning_rate": 0.01,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
