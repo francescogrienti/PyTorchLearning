@@ -24,7 +24,7 @@ hyper_space = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 100,
+    "epochs": 2,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -365,10 +365,10 @@ def main():
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
                                                                                         hyper_space["epochs"]
                                                                                         )
-    # Creare la figura con due sottoplot
-    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
+    # Create figure
+    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(15, 6))
 
-    # Plot della Loss
+    # Plot Loss
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
     ax0.set_ylabel('Model Loss')
@@ -377,24 +377,26 @@ def main():
     ax0.legend(['Train', 'Test'], loc='best')
     ax0.set_title('Loss function')
 
-    # Plot dell'Accuracy
-    ax1.plot(train_accuracies, label='Training accuracy')
-    ax1.plot(test_accuracies, label='Test accuracy')
+    # Plot Accuracy
+    ax1.plot(train_accuracies, label='Training Accuracy')
+    ax1.plot(test_accuracies, label='Test Accuracy')
     ax1.set_ylabel('Model Accuracy')
     ax1.set_xlabel('Epoch')
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
     ax1.set_title('Accuracy function')
 
-    # Convertiamo il dizionario in una tabella
+    # Convert dictionary to table format
     table_data = [[k, v] for k, v in hyper_space.items()]
     table = ax1.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
-                      cellLoc='center', loc='lower right', bbox=[0.05, -0.5, 0.5, 0.3])
+                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
 
-    # Salvare e mostrare il grafico
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Show the plot
     plt.savefig('ViT_loss_accuracy.png')
     plt.show()
-
 
 if __name__ == '__main__':
     print('Running ViT for classification on CIFAR-10 dataset...', flush=True)
