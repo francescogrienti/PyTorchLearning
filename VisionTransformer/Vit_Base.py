@@ -365,7 +365,10 @@ def main():
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
                                                                                         hyper_space["epochs"]
                                                                                         )
+    # Creare la figura con due sottoplot
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
+
+    # Plot della Loss
     ax0.plot(train_losses, label='Train Loss')
     ax0.plot(test_losses, label='Test Loss')
     ax0.set_ylabel('Model Loss')
@@ -374,6 +377,7 @@ def main():
     ax0.legend(['Train', 'Test'], loc='best')
     ax0.set_title('Loss function')
 
+    # Plot dell'Accuracy
     ax1.plot(train_accuracies, label='Training accuracy')
     ax1.plot(test_accuracies, label='Test accuracy')
     ax1.set_ylabel('Model Accuracy')
@@ -382,9 +386,12 @@ def main():
     ax1.legend(['Train', 'Test'], loc='best')
     ax1.set_title('Accuracy function')
 
-    text_str = "\n".join([f"{k}: {v}" for k, v in hyper_space.items()])
-    plt.text(1.5, 3, text_str, fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
+    # Convertiamo il dizionario in una tabella
+    table_data = [[k, v] for k, v in hyper_space.items()]
+    table = ax1.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
+                      cellLoc='center', loc='lower right', bbox=[0.05, -0.5, 0.5, 0.3])
 
+    # Salvare e mostrare il grafico
     plt.savefig('ViT_loss_accuracy.png')
     plt.show()
 
