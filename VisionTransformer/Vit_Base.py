@@ -24,7 +24,7 @@ hyper_space = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 2,
+    "epochs": 100,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
