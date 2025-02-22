@@ -10,21 +10,27 @@ import torch.optim as optim
 
 
 hyper_space = {
-    "embed_size": 128,
+    "embed_size": 24,
     "num_heads": 4,
     "num_hidden_layers": 6,
-    "forward_expansion": 256,
+    "forward_expansion": 96,
     "patch_size": 4,
     "dropout_rate": 0.1,
-    "learning_rate": 0.001,
+    "learning_rate": 0.01,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
     "epochs": 100,
 }
 
-
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.manual_seed(1337)
+torch.use_deterministic_algorithms(True)
+g = torch.Generator()
+g.manual_seed(0)
+
 print(f"Using device: {device}", flush=True)
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -330,12 +336,22 @@ def train_and_test_model(model, criterion, optimizer, epochs):
         print(
             f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}',
             flush=True)
+        if (epoch + 1) % 5 == 0:
+            best_test_accuracy = test_accuracies[epoch]
+            best_test_loss = test_losses[epoch]
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': best_test_loss,
+                'accuracy': best_test_accuracy}, 'checkpoint.pth')
 
     return train_losses, test_losses, train_accuracies, test_accuracies
 
 
 def main():
-    model = ViTForClassification(hyper_space["embed_size"], hyper_space["forward_expansion"], hyper_space["dropout_rate"], hyper_space["num_heads"],
+    model = ViTForClassification(hyper_space["embed_size"], hyper_space["forward_expansion"],
+                                 hyper_space["dropout_rate"], hyper_space["num_heads"],
                                  hyper_space["qkv_bias"], hyper_space["num_hidden_layers"],
                                  train_dataset, hyper_space["num_classes"], hyper_space["patch_size"],
                                  hyper_space["num_channels"]).to(device)
@@ -361,6 +377,9 @@ def main():
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
     ax1.set_title('Accuracy function')
+
+    text_str = "\n".join([f"{k}: {v}" for k, v in hyper_space.items()])
+    plt.text(1.5, 3, text_str, fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
 
     plt.savefig('ViT_loss_accuracy.png')
     plt.show()
