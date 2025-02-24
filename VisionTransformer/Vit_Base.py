@@ -15,16 +15,16 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 #Hyperspace
 hyper_space = {
     "embed_size": 24,
-    "num_heads": 12,
-    "num_hidden_layers": 12,
+    "num_heads": 4,
+    "num_hidden_layers": 6,
     "forward_expansion": 96,
-    "patch_size": 4,
+    "patch_size": 2,
     "dropout_rate": 0.1,
     "learning_rate": 0.01,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 1,
+    "epochs": 100,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -359,8 +359,9 @@ def main():
                                  hyper_space["qkv_bias"], hyper_space["num_hidden_layers"],
                                  train_dataset, hyper_space["num_classes"], hyper_space["patch_size"],
                                  hyper_space["num_channels"]).to(device)
-    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad) #Number of trainable parameters
     print(total_params)
+    hyper_space['Trainable params'] = total_params
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
