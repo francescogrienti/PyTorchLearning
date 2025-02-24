@@ -24,7 +24,7 @@ hyper_space = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 100,
+    "epochs": 1,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -359,6 +359,8 @@ def main():
                                  hyper_space["qkv_bias"], hyper_space["num_hidden_layers"],
                                  train_dataset, hyper_space["num_classes"], hyper_space["patch_size"],
                                  hyper_space["num_channels"]).to(device)
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(total_params)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
