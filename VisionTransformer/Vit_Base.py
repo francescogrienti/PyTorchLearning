@@ -24,8 +24,8 @@ hyper_space = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 1,
-    "warmup_steps": 1
+    "epochs": 100,
+    "warmup_steps": 40
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -372,11 +372,10 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
     linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.5, end_factor=0.01,
-                                                total_iters=hyper_space["warmup_steps"], last_epoch=-1, verbose=True)
+                                                total_iters=hyper_space["warmup_steps"], last_epoch=-1)
     cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
                                                      T_max=hyper_space["epochs"] - hyper_space["warmup_steps"],
-                                                     eta_min=1e-5,
-                                                     verbose=True)
+                                                     eta_min=1e-5)
 
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
                                                                                         hyper_space["epochs"],
