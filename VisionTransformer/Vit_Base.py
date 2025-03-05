@@ -14,10 +14,10 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 
 # Hyperspace
 hyper_space = {
-    "embed_size": 144,
+    "embed_size": 128,
     "num_heads": 4,
     "num_hidden_layers": 6,
-    "forward_expansion": 576,
+    "forward_expansion": 256,
     "patch_size": 4,
     "dropout_rate": 0.1,
     "learning_rate": 0.01,
@@ -371,7 +371,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
-    linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.5, end_factor=0.01,
+    linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.05, end_factor=1.0,
                                                 total_iters=hyper_space["warmup_steps"], last_epoch=-1)
     cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
                                                      T_max=hyper_space["epochs"] - hyper_space["warmup_steps"],
