@@ -9,22 +9,23 @@ import torch.optim as optim
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
 # Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
 
-#System
+# System
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memory usage
 
-#Hyperspace
+# Hyperspace
 hyper_space = {
     "embed_size": 24,
-    "num_heads": 4,
-    "num_hidden_layers": 6,
+    "num_heads": 6,
+    "num_hidden_layers": 9,
     "forward_expansion": 96,
-    "patch_size": 2,
+    "patch_size": 4,
     "dropout_rate": 0.1,
     "learning_rate": 0.01,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
     "epochs": 100,
+    "warmup_steps": 40
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -288,7 +289,7 @@ class ViTForClassification(nn.Module):
         return logits
 
 
-def train_and_test_model(model, criterion, optimizer, epochs):
+def train_and_test_model(model, criterion, optimizer, epochs, linear_warmup, cosine_lr):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     train_accuracies = [0 for _ in range(epochs)]
@@ -350,6 +351,11 @@ def train_and_test_model(model, criterion, optimizer, epochs):
                 'loss': best_test_loss,
                 'accuracy': best_test_accuracy}, 'checkpoint.pth')
 
+        if epoch < hyper_space["warmup_steps"]:
+            linear_warmup.step()
+        else:
+            cosine_lr.step()
+
     return train_losses, test_losses, train_accuracies, test_accuracies
 
 
@@ -359,14 +365,22 @@ def main():
                                  hyper_space["qkv_bias"], hyper_space["num_hidden_layers"],
                                  train_dataset, hyper_space["num_classes"], hyper_space["patch_size"],
                                  hyper_space["num_channels"]).to(device)
-    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad) #Number of trainable parameters
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)  # Number of trainable parameters
     print(total_params)
     hyper_space['Trainable params'] = total_params
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
+    linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.5, end_factor=0.01,
+                                                total_iters=hyper_space["warmup_steps"], last_epoch=-1, verbose=True)
+    cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
+                                                     T_max=hyper_space["epochs"] - hyper_space["warmup_steps"],
+                                                     eta_min=1e-5,
+                                                     verbose=True)
+
     train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, criterion, optimizer,
-                                                                                        hyper_space["epochs"]
+                                                                                        hyper_space["epochs"],
+                                                                                        linear_warmup, cos_decay
                                                                                         )
     # Create figure
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(15, 6))
@@ -378,7 +392,7 @@ def main():
     ax0.set_xlabel('Epoch')
     ax0.grid(True)
     ax0.legend(['Train', 'Test'], loc='best')
-    ax0.set_title('Loss function')
+    ax0.set_title('Loss function - LR Adaptation')
 
     # Plot Accuracy
     ax1.plot(train_accuracies, label='Training Accuracy')
@@ -387,7 +401,7 @@ def main():
     ax1.set_xlabel('Epoch')
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
-    ax1.set_title('Accuracy function')
+    ax1.set_title('Accuracy function - LR Adaptation')
 
     # Convert dictionary to table format
     table_data = [[k, v] for k, v in hyper_space.items()]
@@ -400,6 +414,7 @@ def main():
     # Show the plot
     plt.savefig('ViT_loss_accuracy.png')
     plt.show()
+
 
 if __name__ == '__main__':
     print('Running ViT for classification on CIFAR-10 dataset...', flush=True)
