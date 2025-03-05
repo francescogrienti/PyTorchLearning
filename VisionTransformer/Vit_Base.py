@@ -14,10 +14,10 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 
 # Hyperspace
 hyper_space = {
-    "embed_size": 24,
-    "num_heads": 6,
-    "num_hidden_layers": 9,
-    "forward_expansion": 96,
+    "embed_size": 144,
+    "num_heads": 4,
+    "num_hidden_layers": 6,
+    "forward_expansion": 576,
     "patch_size": 4,
     "dropout_rate": 0.1,
     "learning_rate": 0.01,
@@ -25,7 +25,7 @@ hyper_space = {
     "num_channels": 3,
     "qkv_bias": True,
     "epochs": 100,
-    "warmup_steps": 40
+    "warmup_steps": 20
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
