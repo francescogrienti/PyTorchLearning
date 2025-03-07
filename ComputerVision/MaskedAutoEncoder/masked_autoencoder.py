@@ -92,12 +92,14 @@ class PatchEmbedding(nn.Module):
         # Expand the [CLS] token to the batch size
         # (1, 1, hidden_size) -> (batch_size, 1, hidden_size)
         # masking: length -> length * mask_ratio
+        # add pos embed w/o cls token
+        x = x + self.position_embeddings[:, 1:, :]
         x, mask, ids_restore = self.random_masking(x, mask_ratio)
+        cls_tokens = self.cls_token + self.position_embeddings[:, 1:, :]
         cls_tokens = self.cls_token.expand(batch_size, -1, -1)
         # Concatenate the [CLS] token to the beginning of the input sequence
         # This results in a sequence length of (num_patches + 1)
         x = torch.cat((cls_tokens, x), dim=1)
-        x = x + self.position_embeddings
         x = self.dropout(x)
         return x, mask, ids_restore
 
@@ -386,7 +388,7 @@ def train_model(model, train_loader, optimizer, epochs, device, mask_ratio):
         for inputs, targets in train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()  # Zero out gradients from the previous step
-            loss, _, _ = model(inputs, mask_ratio )
+            loss, _, _ = model(inputs, mask_ratio)
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
 
@@ -420,7 +422,7 @@ def main():
                               QKV_BIAS, train_dataset, PATCH_SIZE, NUM_HIDDEN_LAYERS, NUM_CHANNELS).to(device)
 
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
-    train_losses= train_model(model, train_loader, optimizer, EPOCHS, device, MASK_RATIO)
+    train_losses = train_model(model, train_loader, optimizer, EPOCHS, device, MASK_RATIO)
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
     ax0.set_ylabel('Model Loss')
