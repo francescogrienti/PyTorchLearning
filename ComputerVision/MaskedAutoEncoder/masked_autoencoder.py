@@ -28,6 +28,7 @@ NUM_CHANNELS = 3
 QKV_BIAS = True
 DROPOUT = 0.0
 EPOCHS = 100
+MASK_RATIO = 0.75
 
 """
 CLASSES
@@ -376,26 +377,16 @@ class MaskedAutoEncoder(nn.Module):
         return loss, decoder_output, mask
 
 
-def train_and_test_model(model, train_loader, test_loader, criterion, optimizer, epochs, device):
+def train_model(model, train_loader, optimizer, epochs, device, mask_ratio):
     train_losses = [0 for _ in range(epochs)]
-    test_losses = [0 for _ in range(epochs)]
-    train_accuracies = [0 for _ in range(epochs)]
-    test_accuracies = [0 for _ in range(epochs)]
     for epoch in range(epochs):
         model.train()  # Set the model to training mode
         running_loss = 0.0
-        correct_train = 0
-        total_train = 0
-
         # Training phase
         for inputs, targets in train_loader:
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()  # Zero out gradients from the previous step
-            outputs = model(inputs)  # Forward pass
-            loss = criterion(outputs, targets)  # Compute loss
-            _, predicted = torch.max(outputs.data, 1)  # Get class with the highest probability
-            total_train += targets.size(0)
-            correct_train += (predicted == targets).sum().item()
+            loss, _, _ = model(inputs, mask_ratio )
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
 
@@ -403,31 +394,11 @@ def train_and_test_model(model, train_loader, test_loader, criterion, optimizer,
 
         epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
         train_losses[epoch] = epoch_loss
-        train_accuracies[epoch] = correct_train / total_train
         print(
-            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}, Training Accuracy: {train_accuracies[epoch]:.4f}')
+            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}')
 
-        # Validation phase
-        model.eval()  # Set the model to evaluation mode
-        test_loss = 0.0
-        correct_test = 0
-        total_test = 0
-        with torch.no_grad():  # No need to compute gradients for validation
-            for test_inputs, test_targets in test_loader:
-                test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
-                test_outputs = model(test_inputs)
-                test_loss += criterion(test_outputs, test_targets).item()
-                _, predicted = torch.max(test_outputs.data, 1)  # Get class with highest probability
-                total_test += test_targets.size(0)
-                correct_test += (predicted == test_targets).sum().item()
-
-        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
-        test_losses[epoch] = test_loss
-        test_accuracies[epoch] = correct_test / total_test
-        print(
-            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracies[epoch]:.4f}')
-
-    return train_losses, test_losses, train_accuracies, test_accuracies
+    print(train_losses)
+    return train_losses
 
 
 # TODO Fix the main for training the model.
@@ -448,30 +419,17 @@ def main():
     model = MaskedAutoEncoder(EMBED_SIZE, DECODER_EMBED_SIZE, NUM_PATCHES, FORWARD_EXPANSION, DROPOUT, NUM_HEADS,
                               QKV_BIAS, train_dataset, PATCH_SIZE, NUM_HIDDEN_LAYERS, NUM_CHANNELS).to(device)
 
-    criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
-    train_losses, test_losses, train_accuracies, test_accuracies = train_and_test_model(model, train_loader,
-                                                                                        test_loader,
-                                                                                        criterion, optimizer, EPOCHS,
-                                                                                        device)
+    train_losses= train_model(model, train_loader, optimizer, EPOCHS, device, MASK_RATIO)
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
     ax0.plot(train_losses, label='Train Loss')
-    ax0.plot(test_losses, label='Test Loss')
     ax0.set_ylabel('Model Loss')
     ax0.set_xlabel('Epoch')
     ax0.grid(True)
     ax0.legend(['Train', 'Test'], loc='best')
     ax0.set_title('Loss function')
 
-    ax1.plot(train_accuracies, label='Training accuracy')
-    ax1.plot(test_accuracies, label='Test accuracy')
-    ax1.set_ylabel('Model Accuracy')
-    ax1.set_xlabel('Epoch')
-    ax1.grid(True)
-    ax1.legend(['Train', 'Test'], loc='best')
-    ax1.set_title('Accuracy function')
-
-    plt.savefig('ViT_loss_accuracy.png')
+    plt.savefig('MAE_test.png')
     plt.show()
 
 

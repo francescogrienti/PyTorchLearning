@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import torch.optim as optim
 
 # Credits to https://tintn.github.io/Implementing-Vision-Transformer-from-Scratch/
-# Credits https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
+# Credits to https://github.com/s-chh/PyTorch-Scratch-Vision-Transformer-ViT/tree/main?tab=readme-ov-file
 
 # System
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memory usage
