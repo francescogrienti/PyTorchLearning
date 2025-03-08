@@ -27,7 +27,7 @@ NUM_CLASSES = 10
 NUM_CHANNELS = 3
 QKV_BIAS = True
 DROPOUT = 0.0
-EPOCHS = 1
+EPOCHS = 50
 MASK_RATIO = 0.75
 
 """
@@ -49,7 +49,7 @@ class PatchCreation(nn.Module):
         # Calculate the number of patches from the image size and patch size
         self.num_patches = (self.image_size // self.patch_size) ** 2
         # Create a projection layer to convert the image into patches
-        # The layer projects each patch into a vector of size hidden_size
+        # The layer projects each patch into a vector of size embed_size
         self.projection = nn.Conv2d(in_channels=self.num_channels, out_channels=self.embed_size,
                                     kernel_size=self.patch_size,
                                     stride=self.patch_size)
