@@ -16,18 +16,18 @@ general framework.
 CONSTANTS 
 """
 
-EMBED_SIZE = 48
-DECODER_EMBED_SIZE = 24
+EMBED_SIZE = 24
+DECODER_EMBED_SIZE = 12
 NUM_PATCHES = 64
 NUM_HEADS = 4
-NUM_HIDDEN_LAYERS = 4
-FORWARD_EXPANSION = 4 * 48
+NUM_HIDDEN_LAYERS = 6
+FORWARD_EXPANSION = 48
 PATCH_SIZE = 4
 NUM_CLASSES = 10
 NUM_CHANNELS = 3
 QKV_BIAS = True
 DROPOUT = 0.0
-EPOCHS = 50
+EPOCHS = 100
 MASK_RATIO = 0.75
 
 """
@@ -174,7 +174,7 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
         self.embed_size = embed_size
         self.num_attention_heads = num_attention_heads
-        # The attention head size is the hidden size divided by the number of attention heads
+        # The attention head size is the embed size divided by the number of attention heads
         self.attention_head_size = self.embed_size // self.num_attention_heads
         self.all_head_size = self.num_attention_heads * self.attention_head_size
         assert (self.all_head_size == self.embed_size)
@@ -403,7 +403,6 @@ def train_model(model, train_loader, optimizer, epochs, device, mask_ratio):
     return train_losses
 
 
-# TODO Fix the main for training the model.
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
