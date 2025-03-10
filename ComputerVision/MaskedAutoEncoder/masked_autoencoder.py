@@ -379,8 +379,9 @@ class MaskedAutoEncoder(nn.Module):
         return loss, decoder_output, mask
 
 
-def train_model(model, train_loader, optimizer, epochs, device, mask_ratio):
+def train_model(model, train_loader, test_loader, optimizer, epochs, device, mask_ratio):
     train_losses = [0 for _ in range(epochs)]
+    test_losses = [0 for _ in range(epochs)]
     for epoch in range(epochs):
         model.train()  # Set the model to training mode
         running_loss = 0.0
@@ -397,10 +398,23 @@ def train_model(model, train_loader, optimizer, epochs, device, mask_ratio):
         epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
         train_losses[epoch] = epoch_loss
         print(
-            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}')
+            f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}', flush=True)
 
-    print(train_losses)
-    return train_losses
+        # Validation phase
+        model.eval()  # Set the model to evaluation mode
+        test_loss = 0.0
+        with torch.no_grad():  # No need to compute gradients for validation
+            for test_inputs, test_targets in test_loader:
+                test_inputs, test_targets = test_inputs.to(device), test_targets.to(device)
+                loss, _, _ = model(test_inputs, mask_ratio)
+                test_loss += loss.item()
+
+        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
+        test_losses[epoch] = test_loss
+        print(
+            f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}', flush=True)
+
+    return train_losses, test_losses
 
 
 def main():
@@ -421,15 +435,15 @@ def main():
                               QKV_BIAS, train_dataset, PATCH_SIZE, NUM_HIDDEN_LAYERS, NUM_CHANNELS).to(device)
 
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
-    train_losses = train_model(model, train_loader, optimizer, EPOCHS, device, MASK_RATIO)
-    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(30, 12))
-    ax0.plot(train_losses, label='Train Loss')
-    ax0.set_ylabel('Model Loss')
-    ax0.set_xlabel('Epoch')
-    ax0.grid(True)
-    ax0.legend(['Train', 'Test'], loc='best')
-    ax0.set_title('Loss function')
-
+    train_losses, test_losses = train_model(model, train_loader, test_loader, optimizer, EPOCHS, device, MASK_RATIO)
+    # Plot Loss
+    plt.plot(train_losses, label='Train Loss')
+    plt.plot(test_losses, label='Test Loss')
+    plt.ylabel('Model Loss')
+    plt.xlabel('Epoch')
+    plt.grid(True)
+    plt.legend(['Train', 'Test'], loc='best')
+    plt.title('Loss function - Masked Autoencoder')
     plt.savefig('MAE_test.png')
     plt.show()
 
