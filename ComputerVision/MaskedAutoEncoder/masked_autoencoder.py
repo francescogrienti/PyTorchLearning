@@ -16,18 +16,19 @@ general framework.
 CONSTANTS 
 """
 
-EMBED_SIZE = 24
-DECODER_EMBED_SIZE = 12
+EMBED_SIZE = 48
+DECODER_EMBED_SIZE = 24
 NUM_PATCHES = 64
 NUM_HEADS = 4
-NUM_HIDDEN_LAYERS = 6
-FORWARD_EXPANSION = 48
+ENCOD_HIDDEN_LAYERS = 6
+DECOD_HIDDEN_LAYERS = 3
+FORWARD_EXPANSION = 192
 PATCH_SIZE = 4
 NUM_CLASSES = 10
 NUM_CHANNELS = 3
 QKV_BIAS = True
 DROPOUT = 0.0
-EPOCHS = 100
+EPOCHS = 150
 MASK_RATIO = 0.75
 
 """
@@ -260,12 +261,12 @@ class Encoder(nn.Module):
     The transformer encoder module.
     """
 
-    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers):
+    def __init__(self, embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, encod_hidden_layers):
         super().__init__()
         # Create a list of transformer blocks
         self.layer_norm = nn.LayerNorm(embed_size)
         self.blocks = nn.ModuleList([])
-        for _ in range(num_hidden_layers):
+        for _ in range(encod_hidden_layers):
             block = TransformerBlock(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
             self.blocks.append(block)
 
@@ -280,7 +281,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, embed_size, decoder_embed_size, num_patches, patch_size, num_channels, forward_expansion,
                  dropout, num_attention_heads,
-                 qvk_bias, num_hidden_layers):
+                 qvk_bias, decod_hidden_layers):
         super().__init__()
         self.decoder_embed = nn.Linear(embed_size, decoder_embed_size, bias=True)
         self.mask_token = nn.Parameter(torch.zeros(1, 1, decoder_embed_size))
@@ -290,7 +291,7 @@ class Decoder(nn.Module):
         self.layer_norm = nn.LayerNorm(decoder_embed_size)
         # Create a list of transformer blocks
         self.blocks = nn.ModuleList([])
-        for _ in range(num_hidden_layers):
+        for _ in range(decod_hidden_layers):
             block = TransformerBlock(decoder_embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias)
             self.blocks.append(block)
 
@@ -321,7 +322,7 @@ class Decoder(nn.Module):
 class MaskedAutoEncoder(nn.Module):
     def __init__(self, embed_size, decoder_embed_size, num_patches, forward_expansion, dropout, num_attention_heads,
                  qvk_bias, dataset, patch_size,
-                 num_hidden_layers, num_channels, norm_pix_loss=False):
+                 encod_hidden_layers, decod_hidden_layers, num_channels, norm_pix_loss=False):
         super().__init__()
         self.image_size = dataset[0][0].shape[-1]
         self.embed_size = embed_size
@@ -331,10 +332,11 @@ class MaskedAutoEncoder(nn.Module):
         # Create the embedding layer
         self.embedding = PatchEmbedding(patch_size, embed_size, num_channels, self.image_size, dropout)
         # Create the encoder module
-        self.encoder = Encoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias, num_hidden_layers)
+        self.encoder = Encoder(embed_size, forward_expansion, dropout, num_attention_heads, qvk_bias,
+                               encod_hidden_layers)
         # Create the decoder module
         self.decoder = Decoder(embed_size, decoder_embed_size, num_patches, patch_size, num_channels, forward_expansion,
-                               dropout, num_attention_heads, qvk_bias, num_hidden_layers)
+                               dropout, num_attention_heads, qvk_bias, decod_hidden_layers)
 
     # Function for the patches
     def patchify(self, imgs):
@@ -432,7 +434,8 @@ def main():
     test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
 
     model = MaskedAutoEncoder(EMBED_SIZE, DECODER_EMBED_SIZE, NUM_PATCHES, FORWARD_EXPANSION, DROPOUT, NUM_HEADS,
-                              QKV_BIAS, train_dataset, PATCH_SIZE, NUM_HIDDEN_LAYERS, NUM_CHANNELS).to(device)
+                              QKV_BIAS, train_dataset, PATCH_SIZE, ENCOD_HIDDEN_LAYERS, DECOD_HIDDEN_LAYERS,
+                              NUM_CHANNELS).to(device)
 
     optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
     train_losses, test_losses = train_model(model, train_loader, test_loader, optimizer, EPOCHS, device, MASK_RATIO)
