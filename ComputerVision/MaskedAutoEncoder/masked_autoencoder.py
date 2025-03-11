@@ -8,7 +8,7 @@ import torch.optim as optim
 """
 In this .py we implement the MAE (MaskedAutoEncoder) with the aim of reconstructing masked images 
 from the CIFAR Database. The general architecture of a MAE consists of: masked input, encoder, decoder. We will 
-implement the encoder and the decoder exploiting the Attention Mechanism. This work belongs to the Supervised Learning 
+implement the encoder and the decoder exploiting the Attention Mechanism. This work belongs to the Self-Supervised Learning 
 general framework. 
 """
 
@@ -18,12 +18,12 @@ CONSTANTS
 
 EMBED_SIZE = 12
 DECODER_EMBED_SIZE = 8
-NUM_PATCHES = 64
+NUM_PATCHES = 256
 NUM_HEADS = 4
 ENCOD_HIDDEN_LAYERS = 6
 DECOD_HIDDEN_LAYERS = 3
-FORWARD_EXPANSION = 48
-PATCH_SIZE = 4
+FORWARD_EXPANSION = 24
+PATCH_SIZE = 2
 NUM_CLASSES = 10
 NUM_CHANNELS = 3
 QKV_BIAS = True
