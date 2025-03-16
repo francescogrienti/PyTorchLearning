@@ -4,36 +4,57 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.optim as optim
+import os
 
 """
 In this .py we implement the MAE (MaskedAutoEncoder) with the aim of reconstructing masked images 
-from the CIFAR Database. The general architecture of a MAE consists of: masked input, encoder, decoder. We will 
+from the CIFAR Database. The general architecture of a MAE is made up of: masked input, encoder, decoder. We will 
 implement the encoder and the decoder exploiting the Attention Mechanism. This work belongs to the Self-Supervised Learning 
 general framework. 
 """
 
-"""
-CONSTANTS 
-"""
+# System
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memory usage
 
-EMBED_SIZE = 12
-DECODER_EMBED_SIZE = 8
-NUM_PATCHES = 256
-NUM_HEADS = 4
-ENCOD_HIDDEN_LAYERS = 6
-DECOD_HIDDEN_LAYERS = 3
-FORWARD_EXPANSION = 24
-PATCH_SIZE = 2
-NUM_CLASSES = 10
-NUM_CHANNELS = 3
-QKV_BIAS = True
-DROPOUT = 0.0
-EPOCHS = 300
-MASK_RATIO = 0.75
+# Hyperspace
+hyper_space = {
+    "embed_size": 12,
+    "decoder_embed_size": 8,
+    "num_patches": 256,
+    "num_heads": 4,
+    "encod_hidden_layers": 6,
+    "decod_hidden_layers": 3,
+    "forward_expansion": 24,
+    "patch_size": 2,
+    "dropout_rate": 0.1,
+    "learning_rate": 0.01,
+    "num_classes": 10,
+    "num_channels": 3,
+    "qkv_bias": True,
+    "epochs": 200,
+    "warmup_steps": 40,
+    "mask_ratio": 0.75,
+}
 
-"""
-CLASSES
-"""
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.manual_seed(1337)
+torch.use_deterministic_algorithms(True)
+g = torch.Generator()
+g.manual_seed(0)
+
+print(f"Using device: {device}", flush=True)
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
+])
+
+train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
 
 
 class PatchCreation(nn.Module):
@@ -381,7 +402,7 @@ class MaskedAutoEncoder(nn.Module):
         return loss, decoder_output, mask
 
 
-def train_model(model, train_loader, test_loader, optimizer, epochs, device, mask_ratio):
+def train_model(model, optimizer, epochs, mask_ratio, linear_warmup, cosine_lr):
     train_losses = [0 for _ in range(epochs)]
     test_losses = [0 for _ in range(epochs)]
     for epoch in range(epochs):
@@ -397,7 +418,7 @@ def train_model(model, train_loader, test_loader, optimizer, epochs, device, mas
 
             running_loss += loss.item()  # Accumulate total loss for this batch
 
-        epoch_loss = running_loss / len(train_loader.dataset)  # Average loss for the epoch
+        epoch_loss = running_loss / len(train_loader)  # Average loss for the epoch
         train_losses[epoch] = epoch_loss
         print(
             f'Epoch {epoch + 1}/{epochs}, Training Loss: {epoch_loss:.4f}', flush=True)
@@ -411,34 +432,34 @@ def train_model(model, train_loader, test_loader, optimizer, epochs, device, mas
                 loss, _, _ = model(test_inputs, mask_ratio)
                 test_loss += loss.item()
 
-        test_loss = test_loss / len(test_loader.dataset)  # Average validation loss
+        test_loss = test_loss / len(test_loader)  # Average validation loss
         test_losses[epoch] = test_loss
         print(
             f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}', flush=True)
+
+        if epoch < hyper_space["warmup_steps"]:
+            linear_warmup.step()
+        else:
+            cosine_lr.step()
 
     return train_losses, test_losses
 
 
 def main():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
-    ])
+    model = MaskedAutoEncoder(hyper_space["embed_size"], hyper_space["decoder_embed_size"], hyper_space["num_patches"],
+                              hyper_space["forward_expansion"], hyper_space["dropout_rate"], hyper_space["num_heads"],
+                              hyper_space["qkv_bias"], train_dataset, hyper_space["patch_size"],
+                              hyper_space["encod_hidden_layers"], hyper_space["decod_hidden_layers"],
+                              hyper_space["num_channels"]).to(device)
 
-    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-
-    train_loader = DataLoader(dataset=train_dataset, batch_size=256, shuffle=True)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=256, shuffle=False)
-
-    model = MaskedAutoEncoder(EMBED_SIZE, DECODER_EMBED_SIZE, NUM_PATCHES, FORWARD_EXPANSION, DROPOUT, NUM_HEADS,
-                              QKV_BIAS, train_dataset, PATCH_SIZE, ENCOD_HIDDEN_LAYERS, DECOD_HIDDEN_LAYERS,
-                              NUM_CHANNELS).to(device)
-
-    optimizer = optim.AdamW(model.parameters(), lr=0.01, weight_decay=1e-2)
-    train_losses, test_losses = train_model(model, train_loader, test_loader, optimizer, EPOCHS, device, MASK_RATIO)
+    optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
+    linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.05, end_factor=1.0,
+                                                total_iters=hyper_space["warmup_steps"], last_epoch=-1)
+    cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
+                                                     T_max=hyper_space["epochs"] - hyper_space["warmup_steps"],
+                                                     eta_min=1e-5)
+    train_losses, test_losses = train_model(model, optimizer, hyper_space["epochs"], hyper_space["mask_ratio"],
+                                            linear_warmup, cos_decay)
     # Plot Loss
     plt.plot(train_losses, label='Train Loss')
     plt.plot(test_losses, label='Test Loss')
@@ -446,8 +467,15 @@ def main():
     plt.xlabel('Epoch')
     plt.grid(True)
     plt.legend(['Train', 'Test'], loc='best')
-    plt.title('Loss function - Masked Autoencoder')
-    plt.savefig('MAE_test.png')
+    plt.title('Loss function - Masked Autoencoder with LR adaptation')
+    # Convert dictionary to table format
+    table_data = [[k, v] for k, v in hyper_space.items()]
+    table = plt.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
+                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+    plt.savefig('MAE_loss.png')
     plt.show()
 
 
