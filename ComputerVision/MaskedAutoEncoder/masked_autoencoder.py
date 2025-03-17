@@ -31,7 +31,7 @@ hyper_space = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 100,
+    "epochs": 1000,
     "warmup_steps": 40,
     "mask_ratio": 0.75,
 }
@@ -475,7 +475,7 @@ def main():
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
-    plt.savefig('MAE_loss.png')
+    plt.savefig('MAE_loss.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
