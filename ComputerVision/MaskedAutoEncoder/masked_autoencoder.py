@@ -18,20 +18,20 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 
 # Hyperspace
 hyper_space = {
-    "embed_size": 12,
-    "decoder_embed_size": 8,
-    "num_patches": 256,
+    "embed_size": 24,
+    "decoder_embed_size": 12,
+    "num_patches": 64,
     "num_heads": 4,
     "encod_hidden_layers": 6,
     "decod_hidden_layers": 3,
-    "forward_expansion": 24,
-    "patch_size": 2,
+    "forward_expansion": 48,
+    "patch_size": 4,
     "dropout_rate": 0.1,
-    "learning_rate": 0.001,
+    "learning_rate": 0.01,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 200,
+    "epochs": 100,
     "warmup_steps": 40,
     "mask_ratio": 0.75,
 }
@@ -471,7 +471,7 @@ def main():
     # Convert dictionary to table format
     table_data = [[k, v] for k, v in hyper_space.items()]
     table = plt.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
-                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 1.2, 0.3])
+                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
