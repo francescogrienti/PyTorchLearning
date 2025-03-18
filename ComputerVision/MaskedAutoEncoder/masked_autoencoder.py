@@ -18,21 +18,21 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 
 # Hyperspace
 hyper_space = {
-    "embed_size": 24,
-    "decoder_embed_size": 12,
+    "embed_size": 36,
+    "decoder_embed_size": 24,
     "num_patches": 64,
     "num_heads": 4,
-    "encod_hidden_layers": 6,
-    "decod_hidden_layers": 3,
-    "forward_expansion": 48,
+    "encod_hidden_layers": 8,
+    "decod_hidden_layers": 4,
+    "forward_expansion": 108,
     "patch_size": 4,
     "dropout_rate": 0.1,
-    "learning_rate": 0.01,
+    "learning_rate": 0.001,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 1000,
-    "warmup_steps": 40,
+    "epochs": 300,
+    "warmup_steps": 80,
     "mask_ratio": 0.75,
 }
 
@@ -125,7 +125,8 @@ class PatchEmbedding(nn.Module):
         x = self.dropout(x)
         return x, mask, ids_restore
 
-    def random_masking(self, x, mask_ratio):
+    @staticmethod
+    def random_masking(x, mask_ratio):
         """
         Perform per-sample random masking by per-sample shuffling.
         Per-sample shuffling is done by argsort random noise.
