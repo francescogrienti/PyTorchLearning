@@ -18,13 +18,13 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 
 # Hyperspace
 hyper_space = {
-    "embed_size": 36,
-    "decoder_embed_size": 24,
+    "embed_size": 512,
+    "decoder_embed_size": 256,
     "num_patches": 256,
-    "num_heads": 4,
-    "encod_hidden_layers": 8,
-    "decod_hidden_layers": 4,
-    "forward_expansion": 108,
+    "num_heads": 8,
+    "encod_hidden_layers": 12,
+    "decod_hidden_layers": 8,
+    "forward_expansion": 1024,
     "patch_size": 2,
     "dropout_rate": 0.1,
     "learning_rate": 0.0001,
@@ -34,6 +34,7 @@ hyper_space = {
     "epochs": 300,
     "warmup_steps": 80,
     "mask_ratio": 0.75,
+    "weight_decay": 1e-2,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -453,7 +454,8 @@ def main():
                               hyper_space["encod_hidden_layers"], hyper_space["decod_hidden_layers"],
                               hyper_space["num_channels"]).to(device)
 
-    optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
+    optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"],
+                            weight_decay=hyper_space["weight_decay"])
     linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.05, end_factor=1.0,
                                                 total_iters=hyper_space["warmup_steps"], last_epoch=-1)
     cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
