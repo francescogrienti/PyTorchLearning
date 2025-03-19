@@ -25,7 +25,7 @@ hyper_space = {
     "encod_hidden_layers": 8,
     "decod_hidden_layers": 4,
     "forward_expansion": 108,
-    "patch_size": 4,
+    "patch_size": 2,
     "dropout_rate": 0.1,
     "learning_rate": 0.0001,
     "num_classes": 10,
