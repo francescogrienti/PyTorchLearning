@@ -18,13 +18,13 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 
 # Hyperspace
 hyper_space = {
-    "embed_size": 256,
-    "decoder_embed_size": 128,
+    "embed_size": 128,
+    "decoder_embed_size": 64,
     "num_patches": 256,
     "num_heads": 8,
     "encod_hidden_layers": 12,
     "decod_hidden_layers": 8,
-    "forward_expansion": 512,
+    "forward_expansion": 256,
     "patch_size": 2,
     "dropout_rate": 0.1,
     "learning_rate": 0.0001,
