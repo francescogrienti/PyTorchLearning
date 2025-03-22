@@ -15,17 +15,18 @@ os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memor
 # Hyperspace
 hyper_space = {
     "embed_size": 128,
-    "num_heads": 4,
-    "num_hidden_layers": 6,
+    "num_heads": 8,
+    "num_hidden_layers": 8,
     "forward_expansion": 256,
-    "patch_size": 4,
+    "patch_size": 2,
     "dropout_rate": 0.1,
-    "learning_rate": 0.01,
+    "learning_rate": 0.0001,
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 100,
-    "warmup_steps": 20
+    "epochs": 150,
+    "warmup_steps": 40,
+    "weight_decay": 1e-2,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -370,7 +371,8 @@ def main():
     hyper_space['Trainable params'] = total_params
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"], weight_decay=1e-2)
+    optimizer = optim.AdamW(model.parameters(), lr=hyper_space["learning_rate"],
+                            weight_decay=hyper_space["weight_decay"])
     linear_warmup = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.05, end_factor=1.0,
                                                 total_iters=hyper_space["warmup_steps"], last_epoch=-1)
     cos_decay = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
