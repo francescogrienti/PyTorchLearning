@@ -34,7 +34,7 @@ hyper_space = {
     "epochs": 300,
     "warmup_steps": 80,
     "mask_ratio": 0.75,
-    "weight_decay": 1e-2,
+    "weight_decay": 1e-4,
 }
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
