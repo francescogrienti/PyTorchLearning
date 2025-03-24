@@ -411,9 +411,8 @@ def main():
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
-
     # Show the plot
-    plt.savefig('ViT_loss_accuracy.png')
+    plt.savefig('ViT_loss_accuracy.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
