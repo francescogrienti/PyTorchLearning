@@ -444,7 +444,7 @@ def train_model(model, optimizer, epochs, mask_ratio, linear_warmup, cosine_lr):
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': best_test_loss}, '../checkpoint.pth')
+                'loss': best_test_loss}, 'checkpoint.pth')
         if epoch < hyper_space["warmup_steps"]:
             linear_warmup.step()
         else:
