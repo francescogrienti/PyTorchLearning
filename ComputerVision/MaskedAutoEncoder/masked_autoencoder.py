@@ -438,7 +438,13 @@ def train_model(model, optimizer, epochs, mask_ratio, linear_warmup, cosine_lr):
         test_losses[epoch] = test_loss
         print(
             f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}', flush=True)
-
+        if (epoch + 1) % 5 == 0:
+            best_test_loss = test_losses[epoch]
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': best_test_loss}, '../checkpoint.pth')
         if epoch < hyper_space["warmup_steps"]:
             linear_warmup.step()
         else:
