@@ -452,7 +452,7 @@ def train_model(model, optimizer, epochs, mask_ratio, linear_warmup, cosine_lr):
         test_losses[epoch] = test_loss
         print(
             f'Epoch {epoch + 1}/{epochs}, Test Loss: {test_loss:.4f}', flush=True)
-        if (epoch + 1) % 5 == 0:
+        if epoch == epochs - 1:
             best_test_loss = test_losses[epoch]
             torch.save({
                 'epoch': epoch,
