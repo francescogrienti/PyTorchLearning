@@ -31,8 +31,8 @@ hyper_space = {
     "num_classes": 10,
     "num_channels": 3,
     "qkv_bias": True,
-    "epochs": 300,
-    "warmup_steps": 80,
+    "epochs": 150,
+    "warmup_steps": 50,
     "mask_ratio": 0.75,
     "weight_decay": 1e-4,
 }
