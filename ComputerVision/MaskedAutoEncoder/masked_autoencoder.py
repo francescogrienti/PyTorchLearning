@@ -380,7 +380,7 @@ class MaskedAutoEncoder(nn.Module):
         x: (N, L, patch_size**2 *3)
         imgs: (N, 3, H, W)
         """
-        p = self.patch_embed.patch_size[0]
+        p = self.patch_size
         h = w = int(x.shape[1] ** .5)
         assert h * w == x.shape[1]
 
