@@ -118,8 +118,8 @@ class PatchEmbedding(nn.Module):
         # add pos embed w/o cls token
         x = x + self.position_embeddings[:, 1:, :]
         x, mask, ids_restore = self.random_masking(x, mask_ratio)
-        cls_tokens = self.cls_token + self.position_embeddings[:, 1:, :]
-        cls_tokens = self.cls_token.expand(batch_size, -1, -1)
+        cls_token = self.cls_token + self.position_embeddings[:, :1, :]
+        cls_tokens = cls_token.expand(batch_size, -1, -1)
         # Concatenate the [CLS] token to the beginning of the input sequence
         # This results in a sequence length of (num_patches + 1)
         x = torch.cat((cls_tokens, x), dim=1)
