@@ -11,13 +11,13 @@ from ComputerVision.MaskedAutoEncoder.models.mae_model import *
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--batch_size', type=int, default=4096)
-    parser.add_argument('--max_device_batch_size', type=int, default=512)
+    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--max_device_batch_size', type=int, default=64)
     parser.add_argument('--base_learning_rate', type=float, default=1.5e-4)
     parser.add_argument('--weight_decay', type=float, default=0.05)
     parser.add_argument('--mask_ratio', type=float, default=0.75)
-    parser.add_argument('--total_epoch', type=int, default=2000)
-    parser.add_argument('--warmup_epoch', type=int, default=200)
+    parser.add_argument('--total_epoch', type=int, default=300)
+    parser.add_argument('--warmup_epoch', type=int, default=50)
     parser.add_argument('--model_path', type=str, default='vit-t-mae.pt')
 
     args = parser.parse_args()
