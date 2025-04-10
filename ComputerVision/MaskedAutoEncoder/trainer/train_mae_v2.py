@@ -7,8 +7,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor, Compose, Normalize
 from tqdm import tqdm
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(BASE_DIR)
 from mae_model import *
 
 if __name__ == '__main__':
