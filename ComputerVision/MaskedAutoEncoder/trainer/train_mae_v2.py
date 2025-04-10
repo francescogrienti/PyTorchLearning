@@ -1,14 +1,12 @@
 import os
 import argparse
 import math
-import torch
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor, Compose, Normalize
 from tqdm import tqdm
 
-from model import *
-from utils import setup_seed
+from ComputerVision.MaskedAutoEncoder.models.mae_model import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -24,7 +22,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    setup_seed(args.seed)
+    # Set reproducibility
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.manual_seed(1337)
+    torch.use_deterministic_algorithms(True)
+    g = torch.Generator()
+    g.manual_seed(0)
 
     batch_size = args.batch_size
     load_batch_size = min(args.max_device_batch_size, batch_size)
@@ -38,7 +43,6 @@ if __name__ == '__main__':
                                                transform=Compose([ToTensor(), Normalize(0.5, 0.5)]))
     dataloader = torch.utils.data.DataLoader(train_dataset, load_batch_size, shuffle=True, num_workers=4)
     writer = SummaryWriter(os.path.join('logs', 'cifar10', 'mae-pretrain'))
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     model = MAE_ViT(mask_ratio=args.mask_ratio).to(device)
     optim = torch.optim.AdamW(model.parameters(), lr=args.base_learning_rate * args.batch_size / 256, betas=(0.9, 0.95),

@@ -1,5 +1,4 @@
 import torch
-import timm
 import numpy as np
 
 from einops import repeat, rearrange
