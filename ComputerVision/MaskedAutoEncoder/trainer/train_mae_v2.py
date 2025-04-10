@@ -24,6 +24,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Set reproducibility
+    # System
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memory usage
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
