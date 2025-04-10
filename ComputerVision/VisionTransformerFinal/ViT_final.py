@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.optim as optim
 
+# TODO fix the main, include pre-training and fine-tuning
+
 # System
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"  # or ":4096:8" for more memory usage
 
@@ -572,7 +574,6 @@ class ViTForClassification(nn.Module):
         return logits
 
 
-# TODO fix the main, include pre-training and fine-tuning
 def main():
     pretrained_model = MaskedAutoEncoder(hyper_space["embed_size"], hyper_space["decoder_embed_size"],
                                          hyper_space["num_patches"],
