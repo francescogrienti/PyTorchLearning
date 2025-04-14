@@ -7,7 +7,11 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor, Compose, Normalize
 from tqdm import tqdm
 
-from mae_model import *
+from model import *
+
+#=================================
+#References: https://github.com/IcarusWizard/MAE/blob/main/mae_pretrain.py
+#================================
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
