@@ -52,7 +52,7 @@ if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     if args.pretrained_model_path is not None:
-        model = torch.load(args.pretrained_model_path, map_location='cpu')
+        model = torch.load(args.pretrained_model_path, map_location='cpu', weights_only=False)
         writer = SummaryWriter(os.path.join('logs', 'cifar10', 'pretrain-cls'))
     else:
         model = MAE_ViT()
