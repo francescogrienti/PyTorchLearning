@@ -2,6 +2,7 @@ import os
 import argparse
 import math
 import torchvision
+from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor, Compose, Normalize
 from tqdm import tqdm
@@ -75,6 +76,7 @@ if __name__ == '__main__':
         model.train()
         losses = []
         acces = []
+        train_losses, train_acc = [], []
         for img, label in tqdm(iter(train_dataloader)):
             step_count += 1
             img = img.to(device)
@@ -91,12 +93,15 @@ if __name__ == '__main__':
         lr_scheduler.step()
         avg_train_loss = sum(losses) / len(losses)
         avg_train_acc = sum(acces) / len(acces)
+        train_losses.append(avg_train_loss)
+        train_acc.append(avg_train_acc)
         print(f'In epoch {e}, average training loss is {avg_train_loss}, average training acc is {avg_train_acc}.')
 
         model.eval()
         with torch.no_grad():
             losses = []
             acces = []
+            test_losses, test_acc = [], []
             for img, label in tqdm(iter(val_dataloader)):
                 img = img.to(device)
                 label = label.to(device)
@@ -107,6 +112,8 @@ if __name__ == '__main__':
                 acces.append(acc.item())
             avg_val_loss = sum(losses) / len(losses)
             avg_val_acc = sum(acces) / len(acces)
+            test_losses.append(avg_val_loss)
+            test_acc.append(avg_val_acc)
             print(f'In epoch {e}, average validation loss is {avg_val_loss}, average validation acc is {avg_val_acc}.')
 
         if avg_val_acc > best_val_acc:
@@ -116,3 +123,39 @@ if __name__ == '__main__':
 
         writer.add_scalars('cls/loss', {'train': avg_train_loss, 'val': avg_val_loss}, global_step=e)
         writer.add_scalars('cls/acc', {'train': avg_train_acc, 'val': avg_val_acc}, global_step=e)
+
+    # Create figure
+    fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Plot Loss
+    ax0.plot(train_losses, label='Train Loss')
+    ax0.plot(test_losses, label='Test Loss')
+    ax0.set_ylabel('Model Loss')
+    ax0.set_xlabel('Epoch')
+    ax0.grid(True)
+    ax0.legend(['Train', 'Test'], loc='best')
+    ax0.set_title('Loss function - LR Adaptation')
+
+    # Plot Accuracy
+    ax1.plot(train_acc, label='Training Accuracy')
+    ax1.plot(test_acc, label='Test Accuracy')
+    ax1.set_ylabel('Model Accuracy')
+    ax1.set_xlabel('Epoch')
+    ax1.grid(True)
+    ax1.legend(['Train', 'Test'], loc='best')
+    ax1.set_title('Accuracy function - LR Adaptation')
+    values = [model.image_size, model.patch_size, model.emb_dim, model.encoder_layer, model.encoder_head,
+              model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch, args.batch_size,
+              args.base_learning_rate, args.warmup_epoch]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
+            'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start', 'warmup_steps']
+
+    # Convert dictionary to table format
+    table_data = [[k, v] for k, v in zip(keys, values)]
+    table = plt.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
+                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+    # Show the plot
+    plt.savefig('../plots/ViT_loss_accuracy.png', dpi=300, bbox_inches='tight')
+    plt.show()

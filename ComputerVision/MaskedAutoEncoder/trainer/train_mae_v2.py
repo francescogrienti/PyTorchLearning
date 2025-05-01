@@ -3,6 +3,7 @@ import os
 import argparse
 import math
 import torchvision
+from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor, Compose, Normalize
 from tqdm import tqdm
@@ -48,7 +49,8 @@ if __name__ == '__main__':
                                                  transform=Compose([ToTensor(), Normalize(0.5, 0.5)]))
     val_dataset = torchvision.datasets.CIFAR10('../data', train=False, download=True,
                                                transform=Compose([ToTensor(), Normalize(0.5, 0.5)]))
-    dataloader = torch.utils.data.DataLoader(train_dataset, load_batch_size, shuffle=True, num_workers=4)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, load_batch_size, shuffle=True, num_workers=4)
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, load_batch_size, shuffle=False, num_workers=4)
     writer = SummaryWriter(os.path.join('logs', 'cifar10', 'mae-pretrain'))
 
     model = MAE_ViT(mask_ratio=args.mask_ratio).to(device)
@@ -62,8 +64,9 @@ if __name__ == '__main__':
     optim.zero_grad()
     for e in range(args.total_epoch):
         model.train()
-        losses = []
-        for img, label in tqdm(iter(dataloader)):
+        train_losses = []
+        avg_train_loss = []
+        for img, label in tqdm(iter(train_dataloader)):
             step_count += 1
             img = img.to(device)
             predicted_img, mask = model(img)
@@ -72,15 +75,26 @@ if __name__ == '__main__':
             if step_count % steps_per_update == 0:
                 optim.step()
                 optim.zero_grad()
-            losses.append(loss.item())
+            train_losses.append(loss.item())
         lr_scheduler.step()
-        avg_loss = sum(losses) / len(losses)
+        avg_loss = sum(train_losses) / len(train_losses)
+        avg_train_loss.append(avg_loss)
         writer.add_scalar('mae_loss', avg_loss, global_step=e)
         print(f'In epoch {e}, average traning loss is {avg_loss}.')
 
         ''' visualize the first 16 predicted images on val dataset'''
         model.eval()
         with torch.no_grad():
+            test_losses = []
+            avg_test_loss = []
+            for img, label in tqdm(iter(val_dataloader)):
+                img = img.to(device)
+                predicted_img, mask = model(img)
+                loss = torch.mean((predicted_img - img) ** 2 * mask) / args.mask_ratio
+                test_losses.append(loss.item())
+            avg_loss = sum(test_losses) / len(test_losses)
+            avg_test_loss.append(avg_loss)
+
             val_img = torch.stack([val_dataset[i][0] for i in range(16)])
             val_img = val_img.to(device)
             predicted_val_img, mask = model(val_img)
@@ -91,3 +105,27 @@ if __name__ == '__main__':
 
         ''' save model '''
         torch.save(model, args.model_path)
+
+
+    plt.plot(avg_train_loss, label='Train Loss')
+    plt.plot(avg_test_loss, label='Test Loss')
+    plt.ylabel('Model Loss')
+    plt.xlabel('Epoch')
+    plt.grid(True)
+    plt.legend(['Train', 'Test'], loc='best')
+    plt.title('Loss function - Masked Autoencoder with LR adaptation')
+    values = [model.image_size, model.patch_size, model.emb_dim, model.encoder_layer, model.encoder_head,
+              model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch, args.batch_size,
+              args.base_learning_rate, args.warmup_epoch]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
+            'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start', 'warmup_steps']
+
+    # Convert dictionary to table format
+    table_data = [[k, v] for k, v in zip(keys, values)]
+    table = plt.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
+                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+    plt.savefig('../plots/MAE_loss.png', dpi=300, bbox_inches='tight')
+    plt.show()

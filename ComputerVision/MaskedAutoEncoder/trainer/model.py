@@ -145,6 +145,14 @@ class MAE_ViT(torch.nn.Module):
                  ) -> None:
         super().__init__()
 
+        self.image_size = image_size
+        self.patch_size = patch_size
+        self.emb_dim = emb_dim
+        self.encoder_layer = encoder_layer
+        self.encoder_head = encoder_head
+        self.decoder_layer = decoder_layer
+        self.decoder_head = decoder_head
+        self.mask_ratio = mask_ratio
         self.encoder = MAE_Encoder(image_size, patch_size, emb_dim, encoder_layer, encoder_head, mask_ratio)
         self.decoder = MAE_Decoder(image_size, patch_size, emb_dim, decoder_layer, decoder_head)
 
