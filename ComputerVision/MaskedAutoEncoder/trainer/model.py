@@ -151,7 +151,7 @@ class MAE_ViT(torch.nn.Module):
                  encoder_layer=8,
                  encoder_head=8,
                  decoder_layer=4,
-                 decoder_head=3,
+                 decoder_head=4,
                  mask_ratio=0.75,
                  ) -> None:
         super().__init__()
