@@ -10,9 +10,9 @@ from tqdm import tqdm
 
 from model import *
 
-#=================================
-#References: https://github.com/IcarusWizard/MAE/blob/main/mae_pretrain.py
-#================================
+# =================================
+# References: https://github.com/IcarusWizard/MAE/blob/main/mae_pretrain.py
+# ================================
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -62,10 +62,11 @@ if __name__ == '__main__':
 
     step_count = 0
     optim.zero_grad()
+    avg_train_loss = []
+    avg_test_loss = []
     for e in range(args.total_epoch):
         model.train()
         train_losses = []
-        avg_train_loss = []
         for img, label in tqdm(iter(train_dataloader)):
             step_count += 1
             img = img.to(device)
@@ -86,7 +87,6 @@ if __name__ == '__main__':
         model.eval()
         with torch.no_grad():
             test_losses = []
-            avg_test_loss = []
             for img, label in tqdm(iter(val_dataloader)):
                 img = img.to(device)
                 predicted_img, mask = model(img)
@@ -106,7 +106,6 @@ if __name__ == '__main__':
         ''' save model '''
         torch.save(model, args.model_path)
 
-
     plt.plot(avg_train_loss, label='Train Loss')
     plt.plot(avg_test_loss, label='Test Loss')
     plt.ylabel('Model Loss')
@@ -114,10 +113,10 @@ if __name__ == '__main__':
     plt.grid(True)
     plt.legend(['Train', 'Test'], loc='best')
     plt.title('Loss function - Masked Autoencoder with LR adaptation')
-    values = [model.image_size, model.patch_size, model.emb_dim, model.encoder_layer, model.encoder_head,
-              model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch, args.batch_size,
-              args.base_learning_rate, args.warmup_epoch]
-    keys = ['image_size', 'patch_size', 'emb_dim', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
+    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
+              model.encoder_head, model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch,
+              args.batch_size, args.base_learning_rate, args.warmup_epoch]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
             'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start', 'warmup_steps']
 
     # Convert dictionary to table format

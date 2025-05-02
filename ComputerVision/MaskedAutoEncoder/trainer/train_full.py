@@ -72,11 +72,12 @@ if __name__ == '__main__':
     best_val_acc = 0
     step_count = 0
     optim.zero_grad()
+    train_losses, train_acc = [], []
+    test_losses, test_acc = [], []
     for e in range(args.total_epoch):
         model.train()
         losses = []
         acces = []
-        train_losses, train_acc = [], []
         for img, label in tqdm(iter(train_dataloader)):
             step_count += 1
             img = img.to(device)
@@ -101,7 +102,6 @@ if __name__ == '__main__':
         with torch.no_grad():
             losses = []
             acces = []
-            test_losses, test_acc = [], []
             for img, label in tqdm(iter(val_dataloader)):
                 img = img.to(device)
                 label = label.to(device)
@@ -144,11 +144,12 @@ if __name__ == '__main__':
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
     ax1.set_title('Accuracy function - LR Adaptation')
-    values = [model.image_size, model.patch_size, model.emb_dim, model.encoder_layer, model.encoder_head,
-              model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch, args.batch_size,
-              args.base_learning_rate, args.warmup_epoch]
-    keys = ['image_size', 'patch_size', 'emb_dim', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
-            'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start', 'warmup_steps']
+    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
+              model.encoder_head, model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch,
+              args.batch_size, args.base_learning_rate, args.warmup_epoch]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head',
+            'decoder_layer', 'decoder_head', 'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start',
+            'warmup_steps']
 
     # Convert dictionary to table format
     table_data = [[k, v] for k, v in zip(keys, values)]

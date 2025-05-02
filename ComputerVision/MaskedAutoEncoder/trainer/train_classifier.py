@@ -18,7 +18,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--max_device_batch_size', type=int, default=256)
-    parser.add_argument('--base_learning_rate', type=float, default=1e-3)
+    parser.add_argument('--base_learning_rate', type=float, default=1e-2)
     parser.add_argument('--weight_decay', type=float, default=0.05)
     parser.add_argument('--total_epoch', type=int, default=150)
     parser.add_argument('--warmup_epoch', type=int, default=20)
@@ -146,11 +146,10 @@ if __name__ == '__main__':
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
     ax1.set_title('Accuracy function - LR Adaptation')
-    values = [model.image_size, model.patch_size, model.emb_dim, model.encoder_layer, model.encoder_head,
-              model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch, args.batch_size,
-              args.base_learning_rate, args.warmup_epoch]
-    keys = ['image_size', 'patch_size', 'emb_dim', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
-            'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start', 'warmup_steps']
+    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
+              model.encoder_head, args.total_epoch, args.batch_size, args.base_learning_rate, args.warmup_epoch]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'epochs',
+            'batch_size', 'learning_rate_start', 'warmup_steps']
 
     # Convert dictionary to table format
     table_data = [[k, v] for k, v in zip(keys, values)]
