@@ -72,11 +72,12 @@ if __name__ == '__main__':
     best_val_acc = 0
     step_count = 0
     optim.zero_grad()
+    train_losses, train_acc = [], []
+    test_losses, test_acc = [], []
     for e in range(args.total_epoch):
         model.train()
         losses = []
         acces = []
-        train_losses, train_acc = [], []
         for img, label in tqdm(iter(train_dataloader)):
             step_count += 1
             img = img.to(device)
@@ -95,13 +96,13 @@ if __name__ == '__main__':
         avg_train_acc = sum(acces) / len(acces)
         train_losses.append(avg_train_loss)
         train_acc.append(avg_train_acc)
+        print(train_losses, train_acc)
         print(f'In epoch {e}, average training loss is {avg_train_loss}, average training acc is {avg_train_acc}.')
 
         model.eval()
         with torch.no_grad():
             losses = []
             acces = []
-            test_losses, test_acc = [], []
             for img, label in tqdm(iter(val_dataloader)):
                 img = img.to(device)
                 label = label.to(device)
@@ -114,6 +115,7 @@ if __name__ == '__main__':
             avg_val_acc = sum(acces) / len(acces)
             test_losses.append(avg_val_loss)
             test_acc.append(avg_val_acc)
+            print(test_losses, test_acc)
             print(f'In epoch {e}, average validation loss is {avg_val_loss}, average validation acc is {avg_val_acc}.')
 
         if avg_val_acc > best_val_acc:
