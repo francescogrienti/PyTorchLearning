@@ -80,6 +80,7 @@ if __name__ == '__main__':
         lr_scheduler.step()
         avg_loss = sum(train_losses) / len(train_losses)
         avg_train_loss.append(avg_loss)
+        print(avg_train_loss)
         writer.add_scalar('mae_loss', avg_loss, global_step=e)
         print(f'In epoch {e}, average traning loss is {avg_loss}.')
 
@@ -94,6 +95,7 @@ if __name__ == '__main__':
                 test_losses.append(loss.item())
             avg_loss = sum(test_losses) / len(test_losses)
             avg_test_loss.append(avg_loss)
+            print(avg_test_loss)
 
             val_img = torch.stack([val_dataset[i][0] for i in range(16)])
             val_img = val_img.to(device)
