@@ -44,13 +44,19 @@ class MAE_Encoder(torch.nn.Module):
     def __init__(self,
                  image_size=32,
                  patch_size=2,
-                 emb_dim=192,
-                 num_layer=12,
-                 num_head=3,
+                 emb_dim=128,
+                 num_layer=8,
+                 num_head=8,
                  mask_ratio=0.75,
                  ) -> None:
         super().__init__()
 
+        self.image_size = image_size
+        self.patch_size = patch_size
+        self.emb_dim = emb_dim
+        self.num_layer = num_layer
+        self.num_head = num_head
+        self.mask_ratio = mask_ratio
         self.cls_token = torch.nn.Parameter(torch.zeros(1, 1, emb_dim))
         self.pos_embedding = torch.nn.Parameter(torch.zeros((image_size // patch_size) ** 2, 1, emb_dim))
         self.shuffle = PatchShuffle(mask_ratio)
@@ -92,6 +98,11 @@ class MAE_Decoder(torch.nn.Module):
                  ) -> None:
         super().__init__()
 
+        self.image_size = image_size
+        self.patch_size = patch_size
+        self.emb_dim = emb_dim
+        self.num_layer = num_layer
+        self.num_head = num_head
         self.mask_token = torch.nn.Parameter(torch.zeros(1, 1, emb_dim))
         self.pos_embedding = torch.nn.Parameter(torch.zeros((image_size // patch_size) ** 2 + 1, 1, emb_dim))
 
@@ -136,9 +147,9 @@ class MAE_ViT(torch.nn.Module):
     def __init__(self,
                  image_size=32,
                  patch_size=2,
-                 emb_dim=192,
-                 encoder_layer=12,
-                 encoder_head=3,
+                 emb_dim=128,
+                 encoder_layer=8,
+                 encoder_head=8,
                  decoder_layer=4,
                  decoder_head=3,
                  mask_ratio=0.75,
@@ -163,8 +174,18 @@ class MAE_ViT(torch.nn.Module):
 
 
 class ViT_Classifier(torch.nn.Module):
-    def __init__(self, encoder: MAE_Encoder, num_classes=10) -> None:
+    def __init__(self, encoder: MAE_Encoder, decoder: MAE_Decoder, num_classes=10) -> None:
         super().__init__()
+
+        self.image_size = encoder.image_size
+        self.patch_size = encoder.patch_size
+        self.emb_dim = encoder.emb_dim
+        self.encoder_layer = encoder.num_layer
+        self.encoder_head = encoder.num_head
+        self.decoder_layer = decoder.num_layer
+        self.decoder_head = decoder.num_head
+        self.mask_ratio = encoder.mask_ratio
+
         self.cls_token = encoder.cls_token
         self.pos_embedding = encoder.pos_embedding
         self.patchify = encoder.patchify
