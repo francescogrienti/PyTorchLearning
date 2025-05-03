@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--warmup_epoch', type=int, default=5)
     parser.add_argument('--pretrained_model_path', type=str, default=None)
     parser.add_argument('--output_model_path', type=str, default='vit-t-classifier-from_scratch.pt')
+    parser.add_argument('--exp_name', type=str, required=True, help='Nome esperimento')
 
     args = parser.parse_args()
 
@@ -38,6 +39,7 @@ if __name__ == '__main__':
     g = torch.Generator()
     g.manual_seed(0)
 
+    exp_name = args.exp_name
     batch_size = args.batch_size
     load_batch_size = min(args.max_device_batch_size, batch_size)
 
@@ -136,7 +138,7 @@ if __name__ == '__main__':
     ax0.set_xlabel('Epoch')
     ax0.grid(True)
     ax0.legend(['Train', 'Test'], loc='best')
-    ax0.set_title('Loss function - LR Adaptation')
+    ax0.set_title('Loss function - ViT-scratch with LR Adaptation')
 
     # Plot Accuracy
     ax1.plot(train_acc, label='Training Accuracy')
@@ -145,7 +147,7 @@ if __name__ == '__main__':
     ax1.set_xlabel('Epoch')
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
-    ax1.set_title('Accuracy function - LR Adaptation')
+    ax1.set_title('Accuracy function -  ViT-scratch with  LR Adaptation')
     values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
               model.encoder_head, args.total_epoch, args.batch_size, args.base_learning_rate, args.warmup_epoch]
     keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'epochs',
@@ -158,5 +160,5 @@ if __name__ == '__main__':
     # Adjust layout to prevent overlap
     plt.tight_layout()
     # Show the plot
-    plt.savefig('../plots/ViT_loss_accuracy_scratch.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'../plots/vit-scratch/{exp_name}/ViT_loss_accuracy_scratch.png', dpi=300, bbox_inches='tight')
     plt.show()

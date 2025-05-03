@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('--total_epoch', type=int, default=300)
     parser.add_argument('--warmup_epoch', type=int, default=50)
     parser.add_argument('--model_path', type=str, default='vit-t-mae.pt')
+    parser.add_argument('--exp_name', type=str, required=True, help='Nome esperimento')
 
     args = parser.parse_args()
 
@@ -39,6 +40,7 @@ if __name__ == '__main__':
     g = torch.Generator()
     g.manual_seed(0)
 
+    exp_name = args.exp_name
     batch_size = args.batch_size
     load_batch_size = min(args.max_device_batch_size, batch_size)
 
@@ -128,5 +130,5 @@ if __name__ == '__main__':
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
-    plt.savefig('../plots/MAE_loss.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'../plots/mae/{exp_name}/MAE_loss.png', dpi=300, bbox_inches='tight')
     plt.show()
