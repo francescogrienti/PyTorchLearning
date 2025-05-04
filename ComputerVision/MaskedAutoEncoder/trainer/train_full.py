@@ -160,5 +160,5 @@ if __name__ == '__main__':
     # Adjust layout to prevent overlap
     plt.tight_layout()
     # Show the plot
-    plt.savefig(f'../plots/vit_pretrained/{exp_name}/ViT_loss_accuracy_pretrained.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'../plots/vit-pretrained/{exp_name}/ViT_loss_accuracy_pretrained.png', dpi=300, bbox_inches='tight')
     plt.show()
