@@ -60,7 +60,7 @@ if __name__ == '__main__':
     else:
         model = MAE_ViT()
         writer = SummaryWriter(os.path.join('logs', 'cifar10', 'scratch-cls'))
-    model = ViT_Classifier(model.encoder, model.decoder, num_classes=10).to(device)
+    model = ViT_Classifier(model.encoder, num_classes=10).to(device)
 
     loss_fn = torch.nn.CrossEntropyLoss()
     acc_fn = lambda logit, label: torch.mean((logit.argmax(dim=-1) == label).float())
