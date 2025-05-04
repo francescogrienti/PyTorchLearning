@@ -147,11 +147,9 @@ if __name__ == '__main__':
     ax1.legend(['Train', 'Test'], loc='best')
     ax1.set_title('Accuracy function - ViT-pretrained with LR Adaptation')
     values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
-              model.encoder_head, model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch,
-              args.batch_size, args.base_learning_rate, args.warmup_epoch]
-    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head',
-            'decoder_layer', 'decoder_head', 'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start',
-            'warmup_steps']
+              model.encoder_head, args.total_epoch, args.batch_size, args.base_learning_rate, args.warmup_epoch]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'epochs',
+            'batch_size', 'learning_rate_start', 'warmup_steps']
 
     # Convert dictionary to table format
     table_data = [[k, v] for k, v in zip(keys, values)]

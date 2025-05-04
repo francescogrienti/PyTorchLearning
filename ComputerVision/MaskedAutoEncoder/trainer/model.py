@@ -174,7 +174,7 @@ class MAE_ViT(torch.nn.Module):
 
 
 class ViT_Classifier(torch.nn.Module):
-    def __init__(self, encoder: MAE_Encoder, decoder: MAE_Decoder, num_classes=10) -> None:
+    def __init__(self, encoder: MAE_Encoder, num_classes=10) -> None:
         super().__init__()
 
         self.image_size = encoder.image_size
@@ -182,9 +182,6 @@ class ViT_Classifier(torch.nn.Module):
         self.emb_dim = encoder.emb_dim
         self.encoder_layer = encoder.num_layer
         self.encoder_head = encoder.num_head
-        self.decoder_layer = decoder.num_layer
-        self.decoder_head = decoder.num_head
-        self.mask_ratio = encoder.mask_ratio
 
         self.cls_token = encoder.cls_token
         self.pos_embedding = encoder.pos_embedding
