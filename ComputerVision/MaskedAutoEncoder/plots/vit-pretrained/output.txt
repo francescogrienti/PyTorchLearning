@@ -1,225 +1,224 @@
 Started ViT-pretrained evaluation...
-In epoch 0, average training loss is 1.7610176408382328, average training acc is 0.5101102941176471.
-In epoch 0, average validation loss is 1.5569820072077498, average validation acc is 0.5869264240506329.
-saving best model with acc 0.5869264240506329 at 0 epoch!
-In epoch 1, average training loss is 1.3194763678723893, average training acc is 0.6197250639386189.
-In epoch 1, average validation loss is 1.2049001568480382, average validation acc is 0.5997824367088608.
-saving best model with acc 0.5997824367088608 at 1 epoch!
-In epoch 2, average training loss is 1.0334909930253577, average training acc is 0.6589194373096652.
-In epoch 2, average validation loss is 0.9392528360403036, average validation acc is 0.6781052215189873.
-saving best model with acc 0.6781052215189873 at 2 epoch!
-In epoch 3, average training loss is 0.9113335854866925, average training acc is 0.6840313299537619.
-In epoch 3, average validation loss is 0.8994449527957772, average validation acc is 0.6889833860759493.
-saving best model with acc 0.6889833860759493 at 3 epoch!
-In epoch 4, average training loss is 0.8321825043319742, average training acc is 0.7093550192425623.
-In epoch 4, average validation loss is 0.8421943414060375, average validation acc is 0.708564082278481.
-saving best model with acc 0.708564082278481 at 4 epoch!
-In epoch 5, average training loss is 0.7759120430787811, average training acc is 0.7292958760200559.
-In epoch 5, average validation loss is 0.7812984532947782, average validation acc is 0.7302215189873418.
-saving best model with acc 0.7302215189873418 at 5 epoch!
-In epoch 6, average training loss is 0.7310068037198938, average training acc is 0.7446531330228157.
-In epoch 6, average validation loss is 0.7694862228405627, average validation acc is 0.7338805379746836.
-saving best model with acc 0.7338805379746836 at 6 epoch!
-In epoch 7, average training loss is 0.684427374387946, average training acc is 0.7596827045730923.
-In epoch 7, average validation loss is 0.7180814520467685, average validation acc is 0.7474287974683544.
-saving best model with acc 0.7474287974683544 at 7 epoch!
-In epoch 8, average training loss is 0.6539546762738386, average training acc is 0.772258631713555.
-In epoch 8, average validation loss is 0.7148979574064666, average validation acc is 0.749307753164557.
-saving best model with acc 0.749307753164557 at 8 epoch!
-In epoch 9, average training loss is 0.6242575322270698, average training acc is 0.7819173593655266.
-In epoch 9, average validation loss is 0.6915705709517757, average validation acc is 0.7631526898734177.
-saving best model with acc 0.7631526898734177 at 9 epoch!
-In epoch 10, average training loss is 0.5968454967221946, average training acc is 0.7928748402144293.
-In epoch 10, average validation loss is 0.6761804675754113, average validation acc is 0.7696795886075949.
-saving best model with acc 0.7696795886075949 at 10 epoch!
-In epoch 11, average training loss is 0.5767676294459712, average training acc is 0.8001878197540713.
-In epoch 11, average validation loss is 0.6984014156498487, average validation acc is 0.7560324367088608.
-In epoch 12, average training loss is 0.5577995115533814, average training acc is 0.8059502878152501.
-In epoch 12, average validation loss is 0.7096246179146103, average validation acc is 0.7524723101265823.
-In epoch 13, average training loss is 0.544054418573599, average training acc is 0.8101662405006721.
-In epoch 13, average validation loss is 0.6600508339042905, average validation acc is 0.7735363924050633.
-saving best model with acc 0.7735363924050633 at 13 epoch!
-In epoch 14, average training loss is 0.5206180965656515, average training acc is 0.8185222187005651.
-In epoch 14, average validation loss is 0.6836794343175767, average validation acc is 0.7642405063291139.
-In epoch 15, average training loss is 0.5134760591075244, average training acc is 0.8191536125319693.
-In epoch 15, average validation loss is 0.6347108106069927, average validation acc is 0.784315664556962.
-saving best model with acc 0.784315664556962 at 15 epoch!
-In epoch 16, average training loss is 0.4988900599882121, average training acc is 0.8261429028742758.
-In epoch 16, average validation loss is 0.6632201018967206, average validation acc is 0.7718552215189873.
-In epoch 17, average training loss is 0.47718326210060996, average training acc is 0.833391943703527.
-In epoch 17, average validation loss is 0.6322046435331996, average validation acc is 0.7852056962025317.
-saving best model with acc 0.7852056962025317 at 17 epoch!
-In epoch 18, average training loss is 0.4617385596341794, average training acc is 0.8384990410121811.
-In epoch 18, average validation loss is 0.6749443728712541, average validation acc is 0.7749208860759493.
-In epoch 19, average training loss is 0.44546471989673114, average training acc is 0.8440896739130435.
-In epoch 19, average validation loss is 0.6554679033122485, average validation acc is 0.780557753164557.
-In epoch 20, average training loss is 0.43553995342968066, average training acc is 0.8479619565827158.
-In epoch 20, average validation loss is 0.6691853615302074, average validation acc is 0.7695806962025317.
-In epoch 21, average training loss is 0.4259860362390728, average training acc is 0.8514306266289537.
-In epoch 21, average validation loss is 0.6390267184263543, average validation acc is 0.7841178797468354.
-In epoch 22, average training loss is 0.4070126259951945, average training acc is 0.8571890984349848.
-In epoch 22, average validation loss is 0.6586095268213297, average validation acc is 0.7763053797468354.
-In epoch 23, average training loss is 0.39554171668141697, average training acc is 0.8626438618620949.
-In epoch 23, average validation loss is 0.6147579479066632, average validation acc is 0.7916337025316456.
-saving best model with acc 0.7916337025316456 at 23 epoch!
-In epoch 24, average training loss is 0.3785589473021915, average training acc is 0.8685382032943199.
-In epoch 24, average validation loss is 0.6383807425257526, average validation acc is 0.7887658227848101.
-In epoch 25, average training loss is 0.37080330803723593, average training acc is 0.8706521739435318.
-In epoch 25, average validation loss is 0.6537962786004513, average validation acc is 0.786689082278481.
-In epoch 26, average training loss is 0.3610251431193803, average training acc is 0.8732976343320764.
-In epoch 26, average validation loss is 0.681181541726559, average validation acc is 0.775118670886076.
-In epoch 27, average training loss is 0.34616437619147095, average training acc is 0.8781250000304883.
-In epoch 27, average validation loss is 0.6246508846554575, average validation acc is 0.7955893987341772.
-saving best model with acc 0.7955893987341772 at 27 epoch!
-In epoch 28, average training loss is 0.3332448763310757, average training acc is 0.8844029731152917.
-In epoch 28, average validation loss is 0.6471831440171109, average validation acc is 0.792128164556962.
-In epoch 29, average training loss is 0.3212797781238166, average training acc is 0.8877197889720693.
-In epoch 29, average validation loss is 0.64992528097539, average validation acc is 0.7925237341772152.
-In epoch 30, average training loss is 0.3181110257687776, average training acc is 0.8871962915905907.
-In epoch 30, average validation loss is 0.6728772392755822, average validation acc is 0.7824367088607594.
-In epoch 31, average training loss is 0.3069069060446966, average training acc is 0.8934103261174449.
-In epoch 31, average validation loss is 0.6525483701048018, average validation acc is 0.7944026898734177.
-In epoch 32, average training loss is 0.2872072999434703, average training acc is 0.8997562340153452.
-In epoch 32, average validation loss is 0.6344160426266586, average validation acc is 0.7990506329113924.
-saving best model with acc 0.7990506329113924 at 32 epoch!
-In epoch 33, average training loss is 0.2804477143546809, average training acc is 0.9009670715807648.
-In epoch 33, average validation loss is 0.6348569909983044, average validation acc is 0.7982594936708861.
-In epoch 34, average training loss is 0.27140233816240755, average training acc is 0.9048992967056801.
-In epoch 34, average validation loss is 0.6665749304656741, average validation acc is 0.796182753164557.
-In epoch 35, average training loss is 0.26894509213050005, average training acc is 0.905258951437138.
-In epoch 35, average validation loss is 0.7026320533661903, average validation acc is 0.7835245253164557.
-In epoch 36, average training loss is 0.24476978670605612, average training acc is 0.9140105499026111.
-In epoch 36, average validation loss is 0.6918871432920045, average validation acc is 0.7933148734177216.
-In epoch 37, average training loss is 0.23796058823461727, average training acc is 0.9177429668433831.
-In epoch 37, average validation loss is 0.6568010200428057, average validation acc is 0.8013251582278481.
-saving best model with acc 0.8013251582278481 at 37 epoch!
-In epoch 38, average training loss is 0.23069839511076204, average training acc is 0.9193374360613811.
-In epoch 38, average validation loss is 0.7121706189988535, average validation acc is 0.7913370253164557.
-In epoch 39, average training loss is 0.22228141635885018, average training acc is 0.92200287726834.
-In epoch 39, average validation loss is 0.7118903307975093, average validation acc is 0.7948971518987342.
-In epoch 40, average training loss is 0.2120821930830131, average training acc is 0.9259710677749361.
-In epoch 40, average validation loss is 0.7667698105679283, average validation acc is 0.7816455696202531.
-In epoch 41, average training loss is 0.20578244967800577, average training acc is 0.9275295716112532.
-In epoch 41, average validation loss is 0.7157243686386302, average validation acc is 0.7972705696202531.
-In epoch 42, average training loss is 0.18681927423571687, average training acc is 0.9346227621483376.
-In epoch 42, average validation loss is 0.7270694590067561, average validation acc is 0.7984572784810127.
-In epoch 43, average training loss is 0.1885596857313305, average training acc is 0.9347626278772379.
-In epoch 43, average validation loss is 0.7273062610928016, average validation acc is 0.7962816455696202.
-In epoch 44, average training loss is 0.18265262024138895, average training acc is 0.936321131713555.
-In epoch 44, average validation loss is 0.7939030052740362, average validation acc is 0.7824367088607594.
-In epoch 45, average training loss is 0.1689437388078026, average training acc is 0.9405330882962707.
-In epoch 45, average validation loss is 0.7369441371175307, average validation acc is 0.796875.
-In epoch 46, average training loss is 0.16649041097144338, average training acc is 0.9412124361223577.
-In epoch 46, average validation loss is 0.7704203385341016, average validation acc is 0.7937104430379747.
-In epoch 47, average training loss is 0.14822391796942866, average training acc is 0.948221707130637.
-In epoch 47, average validation loss is 0.7862784191022946, average validation acc is 0.7935126582278481.
-In epoch 48, average training loss is 0.14265817831582425, average training acc is 0.9503196930641409.
-In epoch 48, average validation loss is 0.7608343419394915, average validation acc is 0.8004351265822784.
-In epoch 49, average training loss is 0.13739369915383856, average training acc is 0.9519101663318741.
-In epoch 49, average validation loss is 0.806541338374343, average validation acc is 0.7969738924050633.
-In epoch 50, average training loss is 0.12716426143941978, average training acc is 0.9561221227621484.
-In epoch 50, average validation loss is 0.8055376750004443, average validation acc is 0.7995450949367089.
-In epoch 51, average training loss is 0.12763126590825102, average training acc is 0.955111093380872.
-In epoch 51, average validation loss is 0.8206092058857785, average validation acc is 0.7944026898734177.
-In epoch 52, average training loss is 0.11224632175720256, average training acc is 0.9613810742602629.
-In epoch 52, average validation loss is 0.8630289812631244, average validation acc is 0.7958860759493671.
-In epoch 53, average training loss is 0.11093198396551335, average training acc is 0.9610414003472194.
-In epoch 53, average validation loss is 0.8242451375043844, average validation acc is 0.8017207278481012.
-saving best model with acc 0.8017207278481012 at 53 epoch!
-In epoch 54, average training loss is 0.10325509635612483, average training acc is 0.9644101663013859.
-In epoch 54, average validation loss is 0.8750324362440954, average validation acc is 0.8007318037974683.
-In epoch 55, average training loss is 0.08709774090124824, average training acc is 0.9702445652783679.
-In epoch 55, average validation loss is 0.9006691831576673, average validation acc is 0.794501582278481.
-In epoch 56, average training loss is 0.08546110093974701, average training acc is 0.9709319054623089.
-In epoch 56, average validation loss is 0.9000772298136844, average validation acc is 0.797567246835443.
-In epoch 57, average training loss is 0.08823655779137636, average training acc is 0.9693973785471124.
-In epoch 57, average validation loss is 0.9281859254535241, average validation acc is 0.7947982594936709.
-In epoch 58, average training loss is 0.0756187183529977, average training acc is 0.9737412085008743.
-In epoch 58, average validation loss is 0.9483016823666005, average validation acc is 0.7986550632911392.
-In epoch 59, average training loss is 0.06449287457872763, average training acc is 0.9784806585677749.
-In epoch 59, average validation loss is 0.9689099667947504, average validation acc is 0.7983583860759493.
-In epoch 60, average training loss is 0.059009444668812826, average training acc is 0.9805067135854755.
-In epoch 60, average validation loss is 1.002714324601089, average validation acc is 0.796182753164557.
-In epoch 61, average training loss is 0.06988402607057558, average training acc is 0.9763546994580027.
-In epoch 61, average validation loss is 0.9712647976754587, average validation acc is 0.799940664556962.
-In epoch 62, average training loss is 0.05234906698465157, average training acc is 0.9826246803373937.
-In epoch 62, average validation loss is 0.9867031279998489, average validation acc is 0.8029074367088608.
-saving best model with acc 0.8029074367088608 at 62 epoch!
-In epoch 63, average training loss is 0.0443020744006271, average training acc is 0.985749680367882.
-In epoch 63, average validation loss is 1.0331930035277257, average validation acc is 0.8024129746835443.
-In epoch 64, average training loss is 0.04510971778513068, average training acc is 0.9850943094629157.
-In epoch 64, average validation loss is 1.0493972248668912, average validation acc is 0.7973694620253164.
-In epoch 65, average training loss is 0.03659057591224799, average training acc is 0.9881154092986261.
-In epoch 65, average validation loss is 1.0600138804580592, average validation acc is 0.7969738924050633.
-In epoch 66, average training loss is 0.03305929576944741, average training acc is 0.9893182545061916.
-In epoch 66, average validation loss is 1.1108028368104863, average validation acc is 0.7973694620253164.
-In epoch 67, average training loss is 0.03154188155522927, average training acc is 0.9901854220558616.
-In epoch 67, average validation loss is 1.1303148782705958, average validation acc is 0.799248417721519.
-In epoch 68, average training loss is 0.03737549186872361, average training acc is 0.986868606199084.
-In epoch 68, average validation loss is 1.080966202518608, average validation acc is 0.8029074367088608.
-In epoch 69, average training loss is 0.017384901326304526, average training acc is 0.9952525575752453.
-In epoch 69, average validation loss is 1.144660827479785, average validation acc is 0.8017207278481012.
-In epoch 70, average training loss is 0.01346069041674104, average training acc is 0.9968630115089514.
-In epoch 70, average validation loss is 1.158440330360509, average validation acc is 0.8000395569620253.
-In epoch 71, average training loss is 0.014515687032993359, average training acc is 0.9958799553039434.
-In epoch 71, average validation loss is 1.257112919529782, average validation acc is 0.7912381329113924.
-In epoch 72, average training loss is 0.03450219564513801, average training acc is 0.9878316815856778.
-In epoch 72, average validation loss is 1.1875607122348835, average validation acc is 0.7989517405063291.
-In epoch 73, average training loss is 0.009723196688043835, average training acc is 0.9979499680611789.
-In epoch 73, average validation loss is 1.1909936266609384, average validation acc is 0.8015229430379747.
-In epoch 74, average training loss is 0.005056102182078973, average training acc is 0.9993006713554987.
-In epoch 74, average validation loss is 1.2050930299336398, average validation acc is 0.8047863924050633.
-saving best model with acc 0.8047863924050633 at 74 epoch!
-In epoch 75, average training loss is 0.0025184626032745995, average training acc is 0.9998601342710998.
-In epoch 75, average validation loss is 1.2189387399939042, average validation acc is 0.8055775316455697.
-saving best model with acc 0.8055775316455697 at 75 epoch!
-In epoch 76, average training loss is 0.0019219679879429548, average training acc is 0.9999200767263428.
-In epoch 76, average validation loss is 1.2297256287140181, average validation acc is 0.8075553797468354.
-saving best model with acc 0.8075553797468354 at 76 epoch!
-In epoch 77, average training loss is 0.022724130721625817, average training acc is 0.9926550511813834.
-In epoch 77, average validation loss is 1.2375792310207705, average validation acc is 0.7957871835443038.
-In epoch 78, average training loss is 0.008605111450644071, average training acc is 0.9980218989769821.
-In epoch 78, average validation loss is 1.2443221716941157, average validation acc is 0.8026107594936709.
-In epoch 79, average training loss is 0.0025527285525987348, average training acc is 0.999880115089514.
-In epoch 79, average validation loss is 1.2549286892142477, average validation acc is 0.8031052215189873.
-In epoch 80, average training loss is 0.0016359621346296975, average training acc is 0.999940057544757.
-In epoch 80, average validation loss is 1.2652563603618476, average validation acc is 0.8035007911392406.
-In epoch 81, average training loss is 0.001317851480690267, average training acc is 0.9999800191815856.
-In epoch 81, average validation loss is 1.276777467395686, average validation acc is 0.8032041139240507.
-In epoch 82, average training loss is 0.001177031742816772, average training acc is 0.9999800191815856.
-In epoch 82, average validation loss is 1.287125596517249, average validation acc is 0.8052808544303798.
-In epoch 83, average training loss is 0.0010764270881250444, average training acc is 0.9999800191815856.
-In epoch 83, average validation loss is 1.298235249670246, average validation acc is 0.8034018987341772.
-In epoch 84, average training loss is 0.0009853009588133943, average training acc is 0.9999800191815856.
-In epoch 84, average validation loss is 1.3086418999901301, average validation acc is 0.803995253164557.
-In epoch 85, average training loss is 0.0008994000556710822, average training acc is 0.9999800191815856.
-In epoch 85, average validation loss is 1.318420176264606, average validation acc is 0.8054786392405063.
-In epoch 86, average training loss is 0.0008293693648357078, average training acc is 0.9999800191815856.
-In epoch 86, average validation loss is 1.3313810561276689, average validation acc is 0.8042919303797469.
-In epoch 87, average training loss is 0.0007847580524153121, average training acc is 0.9999800191815856.
-In epoch 87, average validation loss is 1.3399099247365058, average validation acc is 0.8042919303797469.
-In epoch 88, average training loss is 0.0007192902477628425, average training acc is 0.9999800191815856.
-In epoch 88, average validation loss is 1.3489305708981767, average validation acc is 0.8045886075949367.
-In epoch 89, average training loss is 0.0006996398696618135, average training acc is 0.9999800191815856.
-In epoch 89, average validation loss is 1.3584537204307845, average validation acc is 0.803995253164557.
-In epoch 90, average training loss is 0.00062163685356318, average training acc is 0.9999800191815856.
-In epoch 90, average validation loss is 1.3668298479876941, average validation acc is 0.803995253164557.
-In epoch 91, average training loss is 0.0005912200602166274, average training acc is 0.9999800191815856.
-In epoch 91, average validation loss is 1.376291364808626, average validation acc is 0.8040941455696202.
-In epoch 92, average training loss is 0.0005693832243247258, average training acc is 0.9999800191815856.
-In epoch 92, average validation loss is 1.3886525344245042, average validation acc is 0.803995253164557.
-In epoch 93, average training loss is 0.0005457710275692089, average training acc is 0.9999800191815856.
-In epoch 93, average validation loss is 1.3878692811048483, average validation acc is 0.8048852848101266.
-In epoch 94, average training loss is 0.0004791360382851728, average training acc is 0.9999800191815856.
-In epoch 94, average validation loss is 1.3924832638305953, average validation acc is 0.8046875.
-In epoch 95, average training loss is 0.000400054629657196, average training acc is 1.0.
-In epoch 95, average validation loss is 1.3967748752123192, average validation acc is 0.8044897151898734.
-In epoch 96, average training loss is 0.00038170577667783373, average training acc is 1.0.
-In epoch 96, average validation loss is 1.3992673867865453, average validation acc is 0.8044897151898734.
-In epoch 97, average training loss is 0.0003708544157622882, average training acc is 1.0.
-In epoch 97, average validation loss is 1.4011069324952137, average validation acc is 0.8041930379746836.
-In epoch 98, average training loss is 0.0003646409599488015, average training acc is 1.0.
-In epoch 98, average validation loss is 1.4020947949795783, average validation acc is 0.8042919303797469.
-In epoch 99, average training loss is 0.0003611788180370308, average training acc is 1.0.
-In epoch 99, average validation loss is 1.4024033885967881, average validation acc is 0.8043908227848101.
+In epoch 0, average training loss is 1.1060406693717098, average training acc is 0.780886349165836.
+In epoch 0, average validation loss is 0.7560764536072936, average validation acc is 0.8203125.
+saving best model with acc 0.8203125 at 0 epoch!
+In epoch 1, average training loss is 0.5589893107371562, average training acc is 0.8467151534831737.
+In epoch 1, average validation loss is 0.5128360247310204, average validation acc is 0.8393987341772152.
+saving best model with acc 0.8393987341772152 at 1 epoch!
+In epoch 2, average training loss is 0.4234100132037307, average training acc is 0.8668957800816393.
+In epoch 2, average validation loss is 0.4817322866071629, average validation acc is 0.8410799050632911.
+saving best model with acc 0.8410799050632911 at 2 epoch!
+In epoch 3, average training loss is 0.3674109397489396, average training acc is 0.8793358375959079.
+In epoch 3, average validation loss is 0.4466932512159589, average validation acc is 0.8512658227848101.
+saving best model with acc 0.8512658227848101 at 3 epoch!
+In epoch 4, average training loss is 0.3516844057518503, average training acc is 0.8823729219948849.
+In epoch 4, average validation loss is 0.4542770464963551, average validation acc is 0.8524525316455697.
+saving best model with acc 0.8524525316455697 at 4 epoch!
+In epoch 5, average training loss is 0.27509457818077654, average training acc is 0.9084239131044549.
+In epoch 5, average validation loss is 0.4478665278116359, average validation acc is 0.8581882911392406.
+saving best model with acc 0.8581882911392406 at 5 epoch!
+In epoch 6, average training loss is 0.23468066184112177, average training acc is 0.9209678708135015.
+In epoch 6, average validation loss is 0.4668440907439099, average validation acc is 0.856309335443038.
+In epoch 7, average training loss is 0.21001403473908334, average training acc is 0.9283727622398025.
+In epoch 7, average validation loss is 0.43349951939492287, average validation acc is 0.8638251582278481.
+saving best model with acc 0.8638251582278481 at 7 epoch!
+In epoch 8, average training loss is 0.181622351460216, average training acc is 0.9385070332785701.
+In epoch 8, average validation loss is 0.48775214239766324, average validation acc is 0.8531447784810127.
+In epoch 9, average training loss is 0.17036181835033704, average training acc is 0.9423193734929994.
+In epoch 9, average validation loss is 0.45414748448359815, average validation acc is 0.8595727848101266.
+In epoch 10, average training loss is 0.14823236244032756, average training acc is 0.9496243606747874.
+In epoch 10, average validation loss is 0.44722647380225267, average validation acc is 0.8579905063291139.
+In epoch 11, average training loss is 0.13103471942188794, average training acc is 0.9548593350993398.
+In epoch 11, average validation loss is 0.4794385807612274, average validation acc is 0.8565071202531646.
+In epoch 12, average training loss is 0.1211644133786335, average training acc is 0.9582320971562125.
+In epoch 12, average validation loss is 0.5010572592668896, average validation acc is 0.8554193037974683.
+In epoch 13, average training loss is 0.12006375248855947, average training acc is 0.9586996483375959.
+In epoch 13, average validation loss is 0.5156997270599196, average validation acc is 0.8453322784810127.
+In epoch 14, average training loss is 0.10672127372582856, average training acc is 0.9633232097491584.
+In epoch 14, average validation loss is 0.5015851868481576, average validation acc is 0.8571004746835443.
+In epoch 15, average training loss is 0.10532803971158422, average training acc is 0.9643901854829715.
+In epoch 15, average validation loss is 0.48586586985407, average validation acc is 0.8639240506329114.
+saving best model with acc 0.8639240506329114 at 15 epoch!
+In epoch 16, average training loss is 0.08773556884492525, average training acc is 0.9702046036415393.
+In epoch 16, average validation loss is 0.48094555735588074, average validation acc is 0.8698575949367089.
+saving best model with acc 0.8698575949367089 at 16 epoch!
+In epoch 17, average training loss is 0.08906342247096093, average training acc is 0.9693214513761613.
+In epoch 17, average validation loss is 0.5019839074038253, average validation acc is 0.8649129746835443.
+In epoch 18, average training loss is 0.08310940684965047, average training acc is 0.9718350383936597.
+In epoch 18, average validation loss is 0.49871816891658155, average validation acc is 0.866495253164557.
+In epoch 19, average training loss is 0.0757489854951039, average training acc is 0.974212755784964.
+In epoch 19, average validation loss is 0.5218368908272514, average validation acc is 0.866495253164557.
+In epoch 20, average training loss is 0.0771893549572362, average training acc is 0.9734335038668055.
+In epoch 20, average validation loss is 0.5190418590850467, average validation acc is 0.8654074367088608.
+In epoch 21, average training loss is 0.06964531248373448, average training acc is 0.9758711637133528.
+In epoch 21, average validation loss is 0.4892381199553043, average validation acc is 0.8705498417721519.
+saving best model with acc 0.8705498417721519 at 21 epoch!
+In epoch 22, average training loss is 0.0692588999591139, average training acc is 0.9768502238156546.
+In epoch 22, average validation loss is 0.4929005035871192, average validation acc is 0.8742088607594937.
+saving best model with acc 0.8742088607594937 at 22 epoch!
+In epoch 23, average training loss is 0.0638794188644937, average training acc is 0.9776294757338131.
+In epoch 23, average validation loss is 0.5147451028416429, average validation acc is 0.864814082278481.
+In epoch 24, average training loss is 0.059577760334267184, average training acc is 0.9795076726647594.
+In epoch 24, average validation loss is 0.5253735987257354, average validation acc is 0.8661985759493671.
+In epoch 25, average training loss is 0.06151531906584111, average training acc is 0.9790521099439362.
+In epoch 25, average validation loss is 0.4939137668926505, average validation acc is 0.8694620253164557.
+In epoch 26, average training loss is 0.04851579486661593, average training acc is 0.9830842391609231.
+In epoch 26, average validation loss is 0.5523245352544363, average validation acc is 0.861748417721519.
+In epoch 27, average training loss is 0.05004313095565647, average training acc is 0.9825047954269077.
+In epoch 27, average validation loss is 0.558935053363631, average validation acc is 0.8608583860759493.
+In epoch 28, average training loss is 0.05689776963208947, average training acc is 0.9801790281329923.
+In epoch 28, average validation loss is 0.5537686670505548, average validation acc is 0.862440664556962.
+In epoch 29, average training loss is 0.044314989788562555, average training acc is 0.9849824169102837.
+In epoch 29, average validation loss is 0.5620658931475652, average validation acc is 0.8632318037974683.
+In epoch 30, average training loss is 0.04473126348753548, average training acc is 0.9847226662708976.
+In epoch 30, average validation loss is 0.5634758568639997, average validation acc is 0.8650118670886076.
+In epoch 31, average training loss is 0.04622726171822918, average training acc is 0.9846307545366799.
+In epoch 31, average validation loss is 0.5224859414598609, average validation acc is 0.8704509493670886.
+In epoch 32, average training loss is 0.03575196946331578, average training acc is 0.9879156011144828.
+In epoch 32, average validation loss is 0.6522965536841864, average validation acc is 0.8540348101265823.
+In epoch 33, average training loss is 0.042239638479531307, average training acc is 0.9852661444707904.
+In epoch 33, average validation loss is 0.5542508969201317, average validation acc is 0.8698575949367089.
+In epoch 34, average training loss is 0.03726878520899245, average training acc is 0.9879076087566288.
+In epoch 34, average validation loss is 0.6081011259480368, average validation acc is 0.8596716772151899.
+In epoch 35, average training loss is 0.03763776450939572, average training acc is 0.9876078964804139.
+In epoch 35, average validation loss is 0.5748148026722896, average validation acc is 0.8677808544303798.
+In epoch 36, average training loss is 0.0327031487745502, average training acc is 0.9887987532274193.
+In epoch 36, average validation loss is 0.5752310454845428, average validation acc is 0.867879746835443.
+In epoch 37, average training loss is 0.03141474780773082, average training acc is 0.9900055946901326.
+In epoch 37, average validation loss is 0.5680224284341063, average validation acc is 0.8640229430379747.
+In epoch 38, average training loss is 0.03336632991855121, average training acc is 0.9888187340458335.
+In epoch 38, average validation loss is 0.5607793753660177, average validation acc is 0.8690664556962026.
+In epoch 39, average training loss is 0.030662129489619216, average training acc is 0.9895100703324808.
+In epoch 39, average validation loss is 0.5551250578859185, average validation acc is 0.8704509493670886.
+In epoch 40, average training loss is 0.025752760632180363, average training acc is 0.9913443095238922.
+In epoch 40, average validation loss is 0.5795187050405937, average validation acc is 0.8697587025316456.
+In epoch 41, average training loss is 0.026909798324760766, average training acc is 0.9908647698819485.
+In epoch 41, average validation loss is 0.5869309279737593, average validation acc is 0.865506329113924.
+In epoch 42, average training loss is 0.029555376692046234, average training acc is 0.9896579284192352.
+In epoch 42, average validation loss is 0.5632124244223667, average validation acc is 0.8742088607594937.
+In epoch 43, average training loss is 0.023231745498669347, average training acc is 0.9924472506393862.
+In epoch 43, average validation loss is 0.554985798235181, average validation acc is 0.8790545886075949.
+saving best model with acc 0.8790545886075949 at 43 epoch!
+In epoch 44, average training loss is 0.01666754737164101, average training acc is 0.994733056296473.
+In epoch 44, average validation loss is 0.5804433032304426, average validation acc is 0.8717365506329114.
+In epoch 45, average training loss is 0.021581403227062073, average training acc is 0.9923633312630227.
+In epoch 45, average validation loss is 0.5719864455204976, average validation acc is 0.8694620253164557.
+In epoch 46, average training loss is 0.022343296157505813, average training acc is 0.9924472506393862.
+In epoch 46, average validation loss is 0.5634112676864937, average validation acc is 0.8771756329113924.
+In epoch 47, average training loss is 0.013589360095742766, average training acc is 0.9956242007672634.
+In epoch 47, average validation loss is 0.6608801623688468, average validation acc is 0.8667919303797469.
+In epoch 48, average training loss is 0.016915550313132535, average training acc is 0.9943014706492119.
+In epoch 48, average validation loss is 0.6433523875908761, average validation acc is 0.8630340189873418.
+In epoch 49, average training loss is 0.019186041111994744, average training acc is 0.993546195652174.
+In epoch 49, average validation loss is 0.6121817570698412, average validation acc is 0.8713409810126582.
+In epoch 50, average training loss is 0.013316980761918298, average training acc is 0.9958320013092606.
+In epoch 50, average validation loss is 0.6013075774535537, average validation acc is 0.873318829113924.
+In epoch 51, average training loss is 0.018637056749038962, average training acc is 0.9938339194678285.
+In epoch 51, average validation loss is 0.5973003989533533, average validation acc is 0.8758900316455697.
+In epoch 52, average training loss is 0.010380398942237419, average training acc is 0.9967631074168798.
+In epoch 52, average validation loss is 0.5440679353107757, average validation acc is 0.8866693037974683.
+saving best model with acc 0.8866693037974683 at 52 epoch!
+In epoch 53, average training loss is 0.01356201202427323, average training acc is 0.9952525575752453.
+In epoch 53, average validation loss is 0.6241422655838954, average validation acc is 0.869560917721519.
+In epoch 54, average training loss is 0.010868393350988055, average training acc is 0.9966232416879796.
+In epoch 54, average validation loss is 0.6317219407875326, average validation acc is 0.8750988924050633.
+In epoch 55, average training loss is 0.009105539136535555, average training acc is 0.996962915601023.
+In epoch 55, average validation loss is 0.6474543147826497, average validation acc is 0.8715387658227848.
+In epoch 56, average training loss is 0.01345917703467719, average training acc is 0.9954323849409742.
+In epoch 56, average validation loss is 0.6300663195456131, average validation acc is 0.8725276898734177.
+In epoch 57, average training loss is 0.010869823111047911, average training acc is 0.9964434143222506.
+In epoch 57, average validation loss is 0.6009988292485853, average validation acc is 0.8775712025316456.
+In epoch 58, average training loss is 0.007001130878442989, average training acc is 0.9976702366033783.
+In epoch 58, average validation loss is 0.6493483093343203, average validation acc is 0.8779667721518988.
+In epoch 59, average training loss is 0.004566482302439196, average training acc is 0.9985214194373402.
+In epoch 59, average validation loss is 0.6338951902676232, average validation acc is 0.8812302215189873.
+In epoch 60, average training loss is 0.0076673766304834095, average training acc is 0.9972426470588235.
+In epoch 60, average validation loss is 0.6314747033617164, average validation acc is 0.8753955696202531.
+In epoch 61, average training loss is 0.00918690817564746, average training acc is 0.9967231457800512.
+In epoch 61, average validation loss is 0.6584369023389454, average validation acc is 0.8750988924050633.
+In epoch 62, average training loss is 0.006033004881293678, average training acc is 0.9979619565217391.
+In epoch 62, average validation loss is 0.5737753594883636, average validation acc is 0.8901305379746836.
+saving best model with acc 0.8901305379746836 at 62 epoch!
+In epoch 63, average training loss is 0.002417775828273261, average training acc is 0.9993406329923273.
+In epoch 63, average validation loss is 0.6035836416332028, average validation acc is 0.8865704113924051.
+In epoch 64, average training loss is 0.0026500265837622904, average training acc is 0.9992007672634271.
+In epoch 64, average validation loss is 0.6475752307267129, average validation acc is 0.8774723101265823.
+In epoch 65, average training loss is 0.005039657551452549, average training acc is 0.9984614769820972.
+In epoch 65, average validation loss is 0.6719043112442463, average validation acc is 0.8747033227848101.
+In epoch 66, average training loss is 0.007419708167033656, average training acc is 0.9974824168797954.
+In epoch 66, average validation loss is 0.6562012750891191, average validation acc is 0.8787579113924051.
+In epoch 67, average training loss is 0.002272735257330678, average training acc is 0.9993206521739131.
+In epoch 67, average validation loss is 0.6043740514712997, average validation acc is 0.8897349683544303.
+In epoch 68, average training loss is 0.00016925613278226243, average training acc is 1.0.
+In epoch 68, average validation loss is 0.6049031949118723, average validation acc is 0.8926028481012658.
+saving best model with acc 0.8926028481012658 at 68 epoch!
+In epoch 69, average training loss is 9.916633355591739e-05, average training acc is 1.0.
+In epoch 69, average validation loss is 0.6032443435131749, average validation acc is 0.8933939873417721.
+saving best model with acc 0.8933939873417721 at 69 epoch!
+In epoch 70, average training loss is 8.308475840200498e-05, average training acc is 1.0.
+In epoch 70, average validation loss is 0.6072482643059537, average validation acc is 0.8937895569620253.
+saving best model with acc 0.8937895569620253 at 70 epoch!
+In epoch 71, average training loss is 7.509994363185087e-05, average training acc is 1.0.
+In epoch 71, average validation loss is 0.6117076951114437, average validation acc is 0.893690664556962.
+In epoch 72, average training loss is 6.851729501047424e-05, average training acc is 1.0.
+In epoch 72, average validation loss is 0.6167030717375912, average validation acc is 0.8932950949367089.
+In epoch 73, average training loss is 6.25558806389905e-05, average training acc is 1.0.
+In epoch 73, average validation loss is 0.6219953339122519, average validation acc is 0.8937895569620253.
+In epoch 74, average training loss is 5.7124357745426535e-05, average training acc is 1.0.
+In epoch 74, average validation loss is 0.627725597329532, average validation acc is 0.8938884493670886.
+saving best model with acc 0.8938884493670886 at 74 epoch!
+In epoch 75, average training loss is 5.2043366075247464e-05, average training acc is 1.0.
+In epoch 75, average validation loss is 0.6334445783986321, average validation acc is 0.8937895569620253.
+In epoch 76, average training loss is 4.730454881896165e-05, average training acc is 1.0.
+In epoch 76, average validation loss is 0.6394096432796007, average validation acc is 0.8941851265822784.
+saving best model with acc 0.8941851265822784 at 76 epoch!
+In epoch 77, average training loss is 4.292699380006934e-05, average training acc is 1.0.
+In epoch 77, average validation loss is 0.6451873585015913, average validation acc is 0.8946795886075949.
+saving best model with acc 0.8946795886075949 at 77 epoch!
+In epoch 78, average training loss is 3.885788607506809e-05, average training acc is 1.0.
+In epoch 78, average validation loss is 0.651358992238588, average validation acc is 0.8944818037974683.
+In epoch 79, average training loss is 3.5082738951827836e-05, average training acc is 1.0.
+In epoch 79, average validation loss is 0.6578001838318909, average validation acc is 0.8950751582278481.
+saving best model with acc 0.8950751582278481 at 79 epoch!
+In epoch 80, average training loss is 3.167300848425795e-05, average training acc is 1.0.
+In epoch 80, average validation loss is 0.6642420261721068, average validation acc is 0.8954707278481012.
+saving best model with acc 0.8954707278481012 at 80 epoch!
+In epoch 81, average training loss is 2.854741751318327e-05, average training acc is 1.0.
+In epoch 81, average validation loss is 0.6706031775927241, average validation acc is 0.8945806962025317.
+In epoch 82, average training loss is 2.5735175435576002e-05, average training acc is 1.0.
+In epoch 82, average validation loss is 0.6768234538126595, average validation acc is 0.8944818037974683.
+In epoch 83, average training loss is 2.3204666536177516e-05, average training acc is 1.0.
+In epoch 83, average validation loss is 0.6829698596951328, average validation acc is 0.8941851265822784.
+In epoch 84, average training loss is 2.094264472945673e-05, average training acc is 1.0.
+In epoch 84, average validation loss is 0.6888142069683799, average validation acc is 0.8940862341772152.
+In epoch 85, average training loss is 1.893767186113314e-05, average training acc is 1.0.
+In epoch 85, average validation loss is 0.69468777145766, average validation acc is 0.8940862341772152.
+In epoch 86, average training loss is 1.7166146785607372e-05, average training acc is 1.0.
+In epoch 86, average validation loss is 0.7004339302642436, average validation acc is 0.8938884493670886.
+In epoch 87, average training loss is 1.5603671721333866e-05, average training acc is 1.0.
+In epoch 87, average validation loss is 0.7059608514927611, average validation acc is 0.8937895569620253.
+In epoch 88, average training loss is 1.424674349011156e-05, average training acc is 1.0.
+In epoch 88, average validation loss is 0.7111776158024993, average validation acc is 0.8938884493670886.
+In epoch 89, average training loss is 1.305515565027026e-05, average training acc is 1.0.
+In epoch 89, average validation loss is 0.7161123914809167, average validation acc is 0.8937895569620253.
+In epoch 90, average training loss is 1.2032949142595705e-05, average training acc is 1.0.
+In epoch 90, average validation loss is 0.7206280229589607, average validation acc is 0.8938884493670886.
+In epoch 91, average training loss is 1.1150784205331657e-05, average training acc is 1.0.
+In epoch 91, average validation loss is 0.7248495353173606, average validation acc is 0.893690664556962.
+In epoch 92, average training loss is 1.041291478013172e-05, average training acc is 1.0.
+In epoch 92, average validation loss is 0.7285552739719802, average validation acc is 0.8938884493670886.
+In epoch 93, average training loss is 9.801953641578e-06, average training acc is 1.0.
+In epoch 93, average validation loss is 0.7317871600389481, average validation acc is 0.8938884493670886.
+In epoch 94, average training loss is 9.302384057573502e-06, average training acc is 1.0.
+In epoch 94, average validation loss is 0.7344785625044303, average validation acc is 0.8940862341772152.
+In epoch 95, average training loss is 8.914183001154545e-06, average training acc is 1.0.
+In epoch 95, average validation loss is 0.7366150010235702, average validation acc is 0.8940862341772152.
+In epoch 96, average training loss is 8.622769357893296e-06, average training acc is 1.0.
+In epoch 96, average validation loss is 0.7382212300089341, average validation acc is 0.8942840189873418.
+In epoch 97, average training loss is 8.425338276368437e-06, average training acc is 1.0.
+In epoch 97, average validation loss is 0.7392482995232449, average validation acc is 0.8941851265822784.
+In epoch 98, average training loss is 8.304619086048309e-06, average training acc is 1.0.
+In epoch 98, average validation loss is 0.739786721105817, average validation acc is 0.8943829113924051.
+In epoch 99, average training loss is 8.25602408282145e-06, average training acc is 1.0.
+In epoch 99, average validation loss is 0.739931903307951, average validation acc is 0.8942840189873418.
 Training done!!
