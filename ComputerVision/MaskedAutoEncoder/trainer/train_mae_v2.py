@@ -10,14 +10,31 @@ from tqdm import tqdm
 
 from model import *
 
+
 # =================================
 # References: https://github.com/IcarusWizard/MAE/blob/main/mae_pretrain.py
 # ================================
 
+def create_params_table(hyperparams, vals) -> None:
+    # Create table data
+    params_table = [[key, value] for key, value in zip(hyperparams, vals)]
+
+    # Create a new figure
+    fig, ax = plt.subplots(figsize=(6, len(hyperparams) * 0.5))  # adjust size based on number of parameters
+    ax.axis('off')  # Hide axes
+    ax.table(cellText=params_table, colLabels=["Hyperparameter", "Value"],
+             cellLoc='center', loc='center')
+
+    # Adjust layout and save
+    plt.tight_layout()
+    plt.savefig(f'../plots/mae/{exp_name}/hyperparams_mae_{exp_name}.png', dpi=300, bbox_inches='tight')
+    plt.close(fig)  # Close the figure to free memory
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=42)
-    parser.add_argument('--batch_size', type=int, default=1024)
+    parser.add_argument('--batch_size', type=int, default=4096)
     parser.add_argument('--max_device_batch_size', type=int, default=512)
     parser.add_argument('--base_learning_rate', type=float, default=1.5e-4)
     parser.add_argument('--weight_decay', type=float, default=0.05)
@@ -35,7 +52,7 @@ if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
-    torch.manual_seed(1337)
+    torch.manual_seed(42)
     torch.use_deterministic_algorithms(True)
     g = torch.Generator()
     g.manual_seed(0)
@@ -56,6 +73,9 @@ if __name__ == '__main__':
     writer = SummaryWriter(os.path.join('logs', 'cifar10', 'mae-pretrain'))
 
     model = MAE_ViT(mask_ratio=args.mask_ratio).to(device)
+
+    # Number of trainable parameters
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     optim = torch.optim.AdamW(model.parameters(), lr=args.base_learning_rate * args.batch_size / 256, betas=(0.9, 0.95),
                               weight_decay=args.weight_decay)
     lr_func = lambda epoch: min((epoch + 1) / (args.warmup_epoch + 1e-8),
@@ -108,27 +128,28 @@ if __name__ == '__main__':
             writer.add_image('mae_image', (img + 1) / 2, global_step=e)
 
         ''' save model '''
-        torch.save(model, args.model_path)
+        torch.save(model.state_dict(), args.model_path)
 
-    plt.plot(avg_train_loss, label='Train Loss')
-    plt.plot(avg_test_loss, label='Test Loss')
+    # Create a table for hyperparameters
+    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
+              model.encoder_head, model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch,
+              args.batch_size, args.base_learning_rate, args.warmup_epoch, args.weight_decay, total_params]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head',
+            'decoder_layer', 'decoder_head', 'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start',
+            'warmup_steps', 'weight_decay', 'trainable_params']
+
+    create_params_table(keys, values)
+
+    plt.plot(avg_train_loss, label='Train Loss', color="orange")
+    plt.plot(avg_test_loss, label='Test Loss', color="purple")
+    plt.xticks(range(0, args.total_epoch, 100))
     plt.ylabel('Model Loss')
     plt.xlabel('Epoch')
     plt.grid(True)
     plt.legend(['Train', 'Test'], loc='best')
-    plt.title('Loss function - Masked Autoencoder with LR adaptation')
-    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
-              model.encoder_head, model.decoder_layer, model.decoder_head, model.mask_ratio, args.total_epoch,
-              args.batch_size, args.base_learning_rate, args.warmup_epoch]
-    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'decoder_layer', 'decoder_head',
-            'mask_ratio', 'epochs', 'batch_size', 'learning_rate_start', 'warmup_steps']
-
-    # Convert dictionary to table format
-    table_data = [[k, v] for k, v in zip(keys, values)]
-    table = plt.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
-                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
+    plt.title('Loss function - Masked Autoencoder')
 
     # Adjust layout to prevent overlap
     plt.tight_layout()
-    plt.savefig(f'../plots/mae/{exp_name}/MAE_loss.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'../plots/mae/{exp_name}/MAE_loss_{exp_name}.png', dpi=300, bbox_inches='tight')
     plt.show()

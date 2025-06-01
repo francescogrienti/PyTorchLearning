@@ -9,9 +9,27 @@ from tqdm import tqdm
 
 from model import *
 
+
 # =================================
 # References: https://github.com/IcarusWizard/MAE/blob/main/train_classifier.py
 # ================================
+
+
+def create_params_table(hyperparams, vals) -> None:
+    # Create table data
+    params_table = [[key, value] for key, value in zip(hyperparams, vals)]
+
+    # Create a new figure
+    fig, ax = plt.subplots(figsize=(6, len(hyperparams) * 0.5))  # adjust size based on number of parameters
+    ax.axis('off')  # Hide axes
+    ax.table(cellText=params_table, colLabels=["Hyperparameter", "Value"],
+             cellLoc='center', loc='center')
+
+    # Adjust layout and save
+    plt.tight_layout()
+    plt.savefig(f'../plots/vit-scratch/{exp_name}/hyperparams_scratch_{exp_name}.png', dpi=300, bbox_inches='tight')
+    plt.close(fig)  # Close the figure to free memory
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -61,6 +79,9 @@ if __name__ == '__main__':
         model = MAE_ViT()
         writer = SummaryWriter(os.path.join('logs', 'cifar10', 'scratch-cls'))
     model = ViT_Classifier(model.encoder, num_classes=10).to(device)
+
+    # Number of trainable parameters
+    total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     loss_fn = torch.nn.CrossEntropyLoss()
     acc_fn = lambda logit, label: torch.mean((logit.argmax(dim=-1) == label).float())
@@ -128,6 +149,15 @@ if __name__ == '__main__':
         writer.add_scalars('cls/loss', {'train': avg_train_loss, 'val': avg_val_loss}, global_step=e)
         writer.add_scalars('cls/acc', {'train': avg_train_acc, 'val': avg_val_acc}, global_step=e)
 
+    # Create a table for hyperparameters
+    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
+              model.encoder_head, args.total_epoch, args.batch_size, args.base_learning_rate, args.warmup_epoch,
+              args.weight_decay, total_params]
+    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'epochs',
+            'batch_size', 'learning_rate_start', 'warmup_steps', 'weight_decay', 'trainable_params']
+
+    create_params_table(keys, values)
+
     # Create figure
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(15, 6))
 
@@ -138,27 +168,20 @@ if __name__ == '__main__':
     ax0.set_xlabel('Epoch')
     ax0.grid(True)
     ax0.legend(['Train', 'Test'], loc='best')
-    ax0.set_title('Loss function - ViT-scratch with LR Adaptation')
+    ax0.set_title('Loss function - ViT-scratch ')
 
     # Plot Accuracy
-    ax1.plot(train_acc, label='Training Accuracy')
-    ax1.plot(test_acc, label='Test Accuracy')
+    ax1.plot(train_acc, label='Training Accuracy', color='red')
+    ax1.plot(test_acc, label='Test Accuracy', color='green')
     ax1.set_ylabel('Model Accuracy')
     ax1.set_xlabel('Epoch')
     ax1.grid(True)
     ax1.legend(['Train', 'Test'], loc='best')
-    ax1.set_title('Accuracy function -  ViT-scratch with  LR Adaptation')
-    values = [model.image_size, model.patch_size, model.emb_dim, model.emb_dim * 4, model.encoder_layer,
-              model.encoder_head, args.total_epoch, args.batch_size, args.base_learning_rate, args.warmup_epoch]
-    keys = ['image_size', 'patch_size', 'emb_dim', 'forward_expansion', 'encoder_layer', 'encoder_head', 'epochs',
-            'batch_size', 'learning_rate_start', 'warmup_steps']
+    ax1.set_title('Accuracy function -  ViT-scratch ')
 
-    # Convert dictionary to table format
-    table_data = [[k, v] for k, v in zip(keys, values)]
-    table = plt.table(cellText=table_data, colLabels=["Hyperparameter", "Value"],
-                      cellLoc='center', loc='upper right', bbox=[1.05, 0, 0.4, 0.3])
     # Adjust layout to prevent overlap
     plt.tight_layout()
     # Show the plot
-    plt.savefig(f'../plots/vit-scratch/{exp_name}/ViT_loss_accuracy_scratch.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'../plots/vit-scratch/{exp_name}/ViT_loss_accuracy_scratch_{exp_name}.png', dpi=300,
+                bbox_inches='tight')
     plt.show()
