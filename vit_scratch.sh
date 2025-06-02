@@ -5,8 +5,8 @@
 #SBATCH --time=120:00:00
 #SBATCH --mem=300GB
 #SBATCH --job-name ViT_scratch
-#SBATCH --output=output.txt
-#SBATCH --error=error.txt
+#SBATCH --output=/home/users/francesco.grienti.stud/MLNucleation/GRIENTI/PyTorchLearning/ComputerVision/MaskedAutoEncoder/plots/vit-scratch/output.txt
+#SBATCH --error=/home/users/francesco.grienti.stud/MLNucleation/GRIENTI/PyTorchLearning/ComputerVision/MaskedAutoEncoder/plots/vit-scratch/error.txt
 #SBATCH --account=mlnucleation
 #SBATCH --gres=gpu:2  #N Gpus to use
 
