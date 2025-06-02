@@ -16,6 +16,7 @@ spack load cuda@12.5.0 arch=linux-rocky8-icelake
 EXP=$1
 mkdir -p /home/users/francesco.grienti.stud/MLNucleation/GRIENTI/PyTorchLearning/ComputerVision/MaskedAutoEncoder/plots/vit-pretrained/$EXP
 
+# shellcheck disable=SC2164
 cd /home/users/francesco.grienti.stud/MLNucleation/GRIENTI/PyTorchLearning/ComputerVision/MaskedAutoEncoder/trainer
 echo "Started ViT-pretrained evaluation..." 
 python3 train_full.py --exp_name "$EXP"
