@@ -142,7 +142,7 @@ if __name__ == '__main__':
 
     plt.plot(avg_train_loss, label='Train Loss', color="orange")
     plt.plot(avg_test_loss, label='Test Loss', color="purple")
-    plt.xticks(range(0, args.total_epoch, 100))
+    plt.xticks(range(1, args.total_epoch + 1, 100))
     plt.ylabel('Model Loss')
     plt.xlabel('Epoch')
     plt.grid(True)
