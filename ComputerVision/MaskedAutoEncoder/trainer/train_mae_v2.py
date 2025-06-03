@@ -140,9 +140,12 @@ if __name__ == '__main__':
 
     create_params_table(keys, values)
 
+    # make the plt figure larger
+    plt.rcParams['figure.figsize'] = [24, 16]
     plt.plot(avg_train_loss, label='Train Loss', color="orange")
     plt.plot(avg_test_loss, label='Test Loss', color="purple")
-    plt.xticks(range(1, args.total_epoch + 1, 100))
+    plt.xlim(1, args.total_epoch)
+    plt.xticks(np.arange(1, args.total_epoch + 1, 100))
     plt.ylabel('Model Loss')
     plt.xlabel('Epoch')
     plt.grid(True)
