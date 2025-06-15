@@ -163,8 +163,8 @@ if __name__ == '__main__':
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(15, 6))
 
     # Plot Loss
-    ax0.plot(train_losses, label='Train Loss')
-    ax0.plot(test_losses, label='Test Loss')
+    ax0.plot(train_losses, label='Train Loss', color="red")
+    ax0.plot(test_losses, label='Test Loss', color="green")
     ax0.set_ylabel('Model Loss')
     ax0.set_xlabel('Epoch')
     ax0.grid(True)
