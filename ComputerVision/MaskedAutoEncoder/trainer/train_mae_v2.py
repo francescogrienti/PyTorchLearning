@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import math
+import torchvision
 from matplotlib import pyplot as plt
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms import ToTensor, Compose, Normalize

@@ -12,7 +12,7 @@ from model import *
 
 # =================================
 # References: https://github.com/IcarusWizard/MAE/blob/main/train_classifier.py
-# ================================
+# =================================
 
 
 def create_params_table(hyperparams, vals) -> None:
