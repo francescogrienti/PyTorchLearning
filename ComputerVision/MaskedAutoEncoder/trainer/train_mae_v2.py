@@ -41,8 +41,8 @@ if __name__ == '__main__':
     parser.add_argument('--mask_ratio', type=float, default=0.75)
     parser.add_argument('--total_epoch', type=int, default=2000)
     parser.add_argument('--warmup_epoch', type=int, default=200)
-    parser.add_argument('--model_path', type=str, default='vit-t-mae.pt')
     parser.add_argument('--exp_name', type=str, required=True, help='Nome esperimento')
+    parser.add_argument('--model_path', type=str, default=f'../plots/mae/checkpoints/medium/vit-t-mae.pt')
 
     args = parser.parse_args()
 
