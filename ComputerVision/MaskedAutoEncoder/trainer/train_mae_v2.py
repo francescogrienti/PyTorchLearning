@@ -13,7 +13,7 @@ from model import *
 
 # =================================
 # References: https://github.com/IcarusWizard/MAE/blob/main/mae_pretrain.py
-# ================================
+# =================================
 
 def create_params_table(hyperparams, vals) -> None:
     # Create table data
