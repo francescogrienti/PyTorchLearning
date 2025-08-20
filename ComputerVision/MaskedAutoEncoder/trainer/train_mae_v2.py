@@ -140,6 +140,11 @@ if __name__ == '__main__':
 
     create_params_table(keys, values)
 
+    avg_train_loss_arr = np.array(avg_train_loss)
+    avg_test_loss_arr = np.array(avg_test_loss)
+    np.savetxt('../plots/mae/values/small/avg_train_loss.txt', avg_train_loss_arr)
+    np.savetxt('../plots/mae/values/small/avg_test_loss.txt', avg_test_loss_arr)
+
     # make the plt figure larger
     plt.rcParams['figure.figsize'] = [15, 10]
     plt.plot(avg_train_loss, label='Train Loss', color="red")
