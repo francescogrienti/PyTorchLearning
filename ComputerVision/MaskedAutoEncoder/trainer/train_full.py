@@ -159,6 +159,15 @@ if __name__ == '__main__':
     # Create plot
     fig, [ax0, ax1] = plt.subplots(1, 2, figsize=(15, 6))
 
+    train_loss_arr = np.array(train_losses)
+    test_loss_arr = np.array(test_losses)
+    train_acc_arr = np.array(train_acc)
+    test_acc_arr = np.array(test_acc)
+    np.savetxt('../plots/vit-pretrained/values/small/train_loss.txt', train_loss_arr)
+    np.savetxt('../plots/vit-pretrained/values/small/avg_test_loss.txt', test_loss_arr)
+    np.savetxt('../plots/vit-pretrained/values/small/avg_train_loss.txt', train_acc_arr)
+    np.savetxt('../plots/vit-pretrained/values/small/avg_test_loss.txt', test_acc_arr)
+
     # Plot Loss
     ax0.plot(train_losses, label='Train Loss', color="red")
     ax0.plot(test_losses, label='Test Loss', color="green")
