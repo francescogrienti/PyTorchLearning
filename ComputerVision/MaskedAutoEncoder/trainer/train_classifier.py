@@ -167,9 +167,9 @@ if __name__ == '__main__':
     train_acc_arr = np.array(train_acc)
     test_acc_arr = np.array(test_acc)
     np.savetxt('../plots/vit-scratch/values/small/train_loss.txt', train_loss_arr)
-    np.savetxt('../plots/vit-scratch/values/small/avg_test_loss.txt', test_loss_arr)
-    np.savetxt('../plots/vit-scratch/values/small/avg_train_loss.txt', train_acc_arr)
-    np.savetxt('../plots/vit-scratch/values/small/avg_test_loss.txt', test_acc_arr)
+    np.savetxt('../plots/vit-scratch/values/small/test_loss.txt', test_loss_arr)
+    np.savetxt('../plots/vit-scratch/values/small/train_acc.txt', train_acc_arr)
+    np.savetxt('../plots/vit-scratch/values/small/test_acc.txt', test_acc_arr)
 
     # Plot Loss
     ax0.plot(train_losses, label='Train Loss', color="red")
