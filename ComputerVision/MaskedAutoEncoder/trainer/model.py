@@ -147,10 +147,10 @@ class MAE_ViT(torch.nn.Module):
     def __init__(self,
                  image_size=32,
                  patch_size=2,
-                 emb_dim=24,
-                 encoder_layer=6,
+                 emb_dim=192,
+                 encoder_layer=12,
                  encoder_head=3,
-                 decoder_layer=3,
+                 decoder_layer=4,
                  decoder_head=3,
                  mask_ratio=0.75,
                  ) -> None:
