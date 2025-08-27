@@ -39,7 +39,7 @@ if __name__ == '__main__':
     parser.add_argument('--weight_decay', type=float, default=0.05)
     parser.add_argument('--total_epoch', type=int, default=100)
     parser.add_argument('--warmup_epoch', type=int, default=5)
-    parser.add_argument('--pretrained_model_path', type=str, default=f'../plots/mae/checkpoints/small/vit-t-mae.pt')
+    parser.add_argument('--pretrained_model_path', type=str, default=f'../plots/mae/checkpoints/medium/vit-t-mae.pt')
     parser.add_argument('--output_model_path', type=str, default='vit-t-classifier-pretrained.pt')
     parser.add_argument('--exp_name', type=str, required=True, help='Nome esperimento')
 
@@ -163,10 +163,10 @@ if __name__ == '__main__':
     test_loss_arr = np.array(test_losses)
     train_acc_arr = np.array(train_acc)
     test_acc_arr = np.array(test_acc)
-    np.savetxt('../plots/vit-pretrained/values/small/train_loss.txt', train_loss_arr)
-    np.savetxt('../plots/vit-pretrained/values/small/test_loss.txt', test_loss_arr)
-    np.savetxt('../plots/vit-pretrained/values/small/train_acc.txt', train_acc_arr)
-    np.savetxt('../plots/vit-pretrained/values/small/test_acc.txt', test_acc_arr)
+    np.savetxt('../plots/vit-pretrained/values/medium/train_loss.txt', train_loss_arr)
+    np.savetxt('../plots/vit-pretrained/values/medium/test_loss.txt', test_loss_arr)
+    np.savetxt('../plots/vit-pretrained/values/medium/train_acc.txt', train_acc_arr)
+    np.savetxt('../plots/vit-pretrained/values/medium/test_acc.txt', test_acc_arr)
 
     # Plot Loss
     ax0.plot(train_losses, label='Train Loss', color="red")
